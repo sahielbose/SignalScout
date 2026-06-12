@@ -1,9 +1,11 @@
 import { requireOrgId } from '@/lib/auth/session';
 import { listApiKeys } from '@/lib/apikeys/service';
+import { listWebhooks } from '@/lib/webhooks/service';
 import { env } from '@/lib/env';
 import { PageHeader } from '@/components/app/page-header';
 import { Card } from '@/components/ui/card';
 import { ApiKeys } from '@/components/integrations/api-keys';
+import { Webhooks } from '@/components/integrations/webhooks';
 import { CopyBlock } from '@/components/integrations/copy-block';
 
 export const metadata = { title: 'Integrations — Signal Scout' };
@@ -11,7 +13,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function IntegrationsPage() {
   const orgId = await requireOrgId();
-  const keys = await listApiKeys(orgId);
+  const [keys, hooks] = await Promise.all([listApiKeys(orgId), listWebhooks(orgId)]);
   const base = env().NEXT_PUBLIC_APP_URL;
 
   return (
@@ -47,6 +49,14 @@ curl -X POST -H "Authorization: Bearer \$SSK" \\
 curl -H "Authorization: Bearer \$SSK" \\
   "${base}/api/lists/<list-id>/export.csv"`}
           </pre>
+        </Card>
+
+        <Card className="p-5">
+          <h2 className="text-sm font-semibold">Outbound webhooks</h2>
+          <p className="mb-4 mt-1 text-xs text-muted-foreground">
+            Signed <code>signal.created</code> events on new high-strength matched signals. CRM push stays a gated, audited action — never automatic.
+          </p>
+          <Webhooks webhooks={hooks.map((w) => ({ id: w.id, url: w.url, events: w.events, active: w.active }))} />
         </Card>
 
         <Card className="space-y-4 p-5">
