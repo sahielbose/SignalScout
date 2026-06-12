@@ -1,5 +1,6 @@
 import type { SignalType, SourceName, IcpDefinition } from '@/lib/types';
 import { TAXONOMY, TAXONOMY_LIST } from './taxonomy';
+import { icpRelevanceScore } from './match';
 
 export interface MockClassifyInput {
   source: SourceName | string;
@@ -85,28 +86,12 @@ export function inferType(input: MockClassifyInput): SignalType {
   }
 }
 
-function icpRelevance(text: string, type: SignalType, def: IcpDefinition): number {
-  const t = text.toLowerCase();
-  let s = 0;
-  for (const kw of def.keywords ?? []) if (kw && t.includes(kw.toLowerCase())) s += 1;
-  for (const ind of def.industries ?? []) if (ind && t.includes(ind.toLowerCase())) s += 0.8;
-  for (const title of def.titles ?? []) if (title && t.includes(title.toLowerCase())) s += 0.6;
-  for (const geo of def.geos ?? []) if (geo && t.includes(geo.toLowerCase())) s += 0.4;
-  const wantsTypes = def.signalTypes ?? [];
-  if (wantsTypes.length) {
-    // signalTypes is a HARD filter when the ICP specifies it — precision over recall.
-    if (!wantsTypes.includes(type)) return 0;
-    s += 0.5;
-  }
-  return s;
-}
-
 export function mockClassify(input: MockClassifyInput): RawClassResult {
   const type = inferType(input);
   const text = `${input.title ?? ''} ${input.text}`;
   const base = TAXONOMY[type].baseStrength;
 
-  const scores = input.icps.map((icp) => icpRelevance(text, type, icp.definition));
+  const scores = input.icps.map((icp) => icpRelevanceScore(text, type, icp.definition));
   const matchedIcpIndexes: number[] = [];
   let bestRel = 0;
   scores.forEach((s, i) => {

@@ -4,6 +4,7 @@ import { listIcps } from '@/lib/icp/service';
 import { SignalTypeSchema, SourceSchema } from '@/lib/types';
 import { FilterBar } from '@/components/feed/filter-bar';
 import { FeedList } from '@/components/feed/feed-list';
+import { OnboardingCard } from '@/components/onboarding/onboarding-card';
 
 export const metadata = { title: 'Feed — Signal Scout' };
 export const dynamic = 'force-dynamic';
@@ -52,6 +53,12 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
     getFeedFacets(orgId),
     listIcps(orgId),
   ]);
+
+  // brand-new account with nothing in the feed → guided onboarding
+  const noFilters = !query;
+  if (total === 0 && noFilters) {
+    return <OnboardingCard hasIcp={icpRows.length > 0} />;
+  }
 
   return (
     <div className="flex h-full flex-col">

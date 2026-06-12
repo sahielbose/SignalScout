@@ -10,6 +10,7 @@ import {
   Building2,
   Plug,
   Gauge,
+  BarChart3,
   Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -23,6 +24,7 @@ const NAV = [
   { href: '/companies', label: 'Companies', icon: Building2 },
   { href: '/integrations', label: 'Integrations', icon: Plug },
   { href: '/usage', label: 'Usage', icon: Gauge },
+  { href: '/evals', label: 'Metrics', icon: BarChart3 },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
