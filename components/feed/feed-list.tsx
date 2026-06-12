@@ -5,6 +5,7 @@ import { Loader2, Radar } from 'lucide-react';
 import type { FeedItem } from '@/lib/feed/queries';
 import { SignalCard } from './signal-card';
 import { toast } from '@/lib/toast';
+import { addToListAction } from '@/lib/lists/actions';
 import { Button } from '@/components/ui/button';
 
 export function FeedList({
@@ -62,9 +63,18 @@ export function FeedList({
     return () => obs.disconnect();
   }, [loadMore]);
 
-  const onAddToList = useCallback((item: FeedItem) => {
-    // Lists are wired in Phase 8; surface the affordance honestly for now.
-    toast(`Saved “${item.companyName ?? item.personName ?? 'signal'}” — manage lists on the Lists page`, 'success');
+  const onAddToList = useCallback(async (item: FeedItem) => {
+    const kind = item.companyId ? 'company' : item.personId ? 'person' : null;
+    const entityId = item.companyId ?? item.personId;
+    if (!kind || !entityId) {
+      toast('Run deep research first to add a person', 'default');
+      return;
+    }
+    const r = await addToListAction({ kind, entityId });
+    toast(
+      r.ok ? `Added ${item.companyName ?? item.personName ?? 'signal'} to “Saved”` : r.error ?? 'Could not add to list',
+      r.ok ? 'success' : 'error',
+    );
   }, []);
 
   if (items.length === 0) {

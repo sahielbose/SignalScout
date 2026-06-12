@@ -222,18 +222,27 @@ export const lists = pgTable('lists', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
+// A list entry is a person OR a company (feed adds companies; research adds people).
 export const listMembers = pgTable(
   'list_members',
   {
+    id: uuid('id').primaryKey().defaultRandom(),
     listId: uuid('list_id')
       .notNull()
       .references(() => lists.id, { onDelete: 'cascade' }),
-    personId: uuid('person_id')
-      .notNull()
-      .references(() => people.id, { onDelete: 'cascade' }),
+    personId: uuid('person_id').references(() => people.id, { onDelete: 'cascade' }),
+    companyId: uuid('company_id').references(() => companies.id, { onDelete: 'cascade' }),
+    note: text('note'),
     addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (t) => [primaryKey({ columns: [t.listId, t.personId] })],
+  (t) => [
+    uniqueIndex('list_members_person_unique')
+      .on(t.listId, t.personId)
+      .where(sql`${t.personId} is not null`),
+    uniqueIndex('list_members_company_unique')
+      .on(t.listId, t.companyId)
+      .where(sql`${t.companyId} is not null`),
+  ],
 );
 
 // ───────────────── ingestion state + trust / cost ──────────────────
