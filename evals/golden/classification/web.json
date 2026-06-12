@@ -1,0 +1,87 @@
+[
+  {
+    "input": {
+      "source": "web",
+      "externalId": "https://acme.com/blog:a1",
+      "url": "https://acme.com/blog",
+      "actor": { "kind": "company", "name": "Acme", "domain": "acme.com" },
+      "title": "Introducing the Acme Payments API",
+      "text": "Content change detected on acme.com: Introducing the Acme Payments API. Our new payments API is now available in general availability for all developers.",
+      "hintType": "content"
+    },
+    "expected": { "type": "product_launch", "min_strength": 0.4 },
+    "note": "web hint=content, but launch cues should win"
+  },
+  {
+    "input": {
+      "source": "web",
+      "externalId": "https://acme.com/changelog:a2",
+      "url": "https://acme.com/changelog",
+      "actor": { "kind": "company", "name": "Acme", "domain": "acme.com" },
+      "title": "Acme now integrates with Salesforce",
+      "text": "Content change detected on acme.com: Acme now integrates with Salesforce. We partnered with Salesforce to bring native CRM sync, a new integration available today.",
+      "hintType": "content"
+    },
+    "expected": { "type": "partnership", "min_strength": 0.35 }
+  },
+  {
+    "input": {
+      "source": "web",
+      "externalId": "https://brightlabs.com/news:a3",
+      "url": "https://brightlabs.com/news",
+      "actor": { "kind": "company", "name": "Bright Labs", "domain": "brightlabs.com" },
+      "title": "Bright Labs raised a $50M Series B",
+      "text": "Content change detected on brightlabs.com: Bright Labs raised a $50M Series B led by Acme Ventures to scale our developer platform.",
+      "hintType": "content"
+    },
+    "expected": { "type": "funding", "min_strength": 0.5 }
+  },
+  {
+    "input": {
+      "source": "web",
+      "externalId": "https://lab.ai/research:a4",
+      "url": "https://lab.ai/research",
+      "actor": { "kind": "company", "name": "Lab AI", "domain": "lab.ai" },
+      "title": "Our paper accepted at NeurIPS 2026",
+      "text": "Content change detected on lab.ai: Our research paper on efficient inference was accepted at NeurIPS 2026.",
+      "hintType": "content"
+    },
+    "expected": { "type": "thought_leadership", "min_strength": 0.2 }
+  },
+  {
+    "input": {
+      "source": "web",
+      "externalId": "https://retailco.com/blog:a5",
+      "url": "https://retailco.com/blog",
+      "actor": { "kind": "company", "name": "RetailCo", "domain": "retailco.com" },
+      "title": "We are evaluating a new data platform",
+      "text": "Content change detected on retailco.com: We are evaluating a new data platform and looking for a vendor to handle real-time analytics at scale.",
+      "hintType": "content"
+    },
+    "expected": { "type": "buying_intent", "min_strength": 0.5 }
+  },
+  {
+    "input": {
+      "source": "web",
+      "externalId": "https://acme.com/eng:a6",
+      "url": "https://acme.com/engineering",
+      "actor": { "kind": "company", "name": "Acme", "domain": "acme.com" },
+      "title": "Scaling Postgres to 10M writes per second",
+      "text": "Content change detected on acme.com: Scaling Postgres to 10M writes per second. Read our latest engineering blog post on database performance.",
+      "hintType": "content"
+    },
+    "expected": { "type": "content", "min_strength": 0.15 }
+  },
+  {
+    "input": {
+      "source": "web",
+      "externalId": "https://fintechco.com/press:a7",
+      "url": "https://fintechco.com/press",
+      "actor": { "kind": "company", "name": "FintechCo", "domain": "fintechco.com" },
+      "title": "FintechCo launches new developer SDK",
+      "text": "Content change detected on fintechco.com: FintechCo launches a new developer SDK. We are announcing general availability of our payments SDK today.",
+      "hintType": "content"
+    },
+    "expected": { "type": "product_launch", "min_strength": 0.4 }
+  }
+]

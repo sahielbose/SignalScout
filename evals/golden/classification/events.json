@@ -1,0 +1,38 @@
+[
+  {
+    "input": {
+      "source": "luma",
+      "externalId": "https://lu.ma/ai-builders-sf",
+      "url": "https://lu.ma/ai-builders-sf",
+      "actor": { "kind": "company", "name": "AI Builders Meetup SF" },
+      "title": "AI Builders Meetup SF",
+      "text": "Event on lu.ma: AI Builders Meetup SF. Join developers building with LLMs for an evening of talks and demos.",
+      "hintType": "event"
+    },
+    "expected": { "type": "event", "min_strength": 0.2 }
+  },
+  {
+    "input": {
+      "source": "luma",
+      "externalId": "https://lu.ma/fintech-founders-dinner",
+      "url": "https://lu.ma/fintech-founders-dinner",
+      "actor": { "kind": "company", "name": "Fintech Founders Dinner" },
+      "title": "Fintech Founders Dinner",
+      "text": "Event on lu.ma: Fintech Founders Dinner. An invite-only dinner for founders building in payments and banking.",
+      "hintType": "event"
+    },
+    "expected": { "type": "event", "min_strength": 0.2 }
+  },
+  {
+    "input": {
+      "source": "luma",
+      "externalId": "https://lu.ma/devtools-conf-2026",
+      "url": "https://lu.ma/devtools-conf-2026",
+      "actor": { "kind": "company", "name": "DevTools Conference 2026" },
+      "title": "DevTools Conference 2026",
+      "text": "Event on lu.ma: DevTools Conference 2026. A two-day conference for developer-tools companies and their users.",
+      "hintType": "event"
+    },
+    "expected": { "type": "event", "min_strength": 0.2 }
+  }
+]

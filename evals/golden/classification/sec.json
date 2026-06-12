@@ -1,0 +1,62 @@
+[
+  {
+    "input": {
+      "source": "sec",
+      "externalId": "0001234567-26-000111",
+      "url": "https://www.sec.gov/Archives/edgar/data/1234567/000123456726000111/primary_doc.html",
+      "actor": { "kind": "company", "name": "Bright Labs Inc" },
+      "title": "Bright Labs Inc filed Form D",
+      "text": "Bright Labs Inc filed a Form D (Reg D exempt offering) with the SEC on 2026-06-10. New equity financing.",
+      "hintType": "funding"
+    },
+    "expected": { "type": "funding", "min_strength": 0.35 }
+  },
+  {
+    "input": {
+      "source": "sec",
+      "externalId": "0007654321-26-000222",
+      "url": "https://www.sec.gov/Archives/edgar/data/7654321/000765432126000222/primary_doc.html",
+      "actor": { "kind": "company", "name": "Northwind Payments LLC" },
+      "title": "Northwind Payments LLC filed Form D",
+      "text": "Northwind Payments LLC filed a Form D (Reg D exempt offering) with the SEC on 2026-06-11.",
+      "hintType": "funding"
+    },
+    "expected": { "type": "funding", "min_strength": 0.5 }
+  },
+  {
+    "input": {
+      "source": "sec",
+      "externalId": "0000320193-26-000300",
+      "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000300/aapl-8k.htm",
+      "actor": { "kind": "company", "name": "Apple Inc." },
+      "title": "Apple Inc. filed 8-K",
+      "text": "Apple Inc. filed a 8-K material event with the SEC on 2026-05-29.",
+      "hintType": "sec_filing"
+    },
+    "expected": { "type": "sec_filing", "min_strength": 0.15 }
+  },
+  {
+    "input": {
+      "source": "sec",
+      "externalId": "0001140361-26-020298",
+      "url": "https://www.sec.gov/Archives/edgar/data/320193/000114036126020298/form4.xml",
+      "actor": { "kind": "company", "name": "Apple Inc." },
+      "title": "Apple Inc. filed 4",
+      "text": "Apple Inc. filed a 4 with the SEC on 2026-05-08.",
+      "hintType": "sec_filing"
+    },
+    "expected": { "type": "sec_filing", "min_strength": 0.15 }
+  },
+  {
+    "input": {
+      "source": "sec",
+      "externalId": "0009998887-26-000045",
+      "url": "https://www.sec.gov/Archives/edgar/data/9998887/000999888726000045/s1.htm",
+      "actor": { "kind": "company", "name": "Helios Data Inc" },
+      "title": "Helios Data Inc filed S-1",
+      "text": "Helios Data Inc filed a S-1 registration statement with the SEC on 2026-06-01 ahead of a public offering.",
+      "hintType": "funding"
+    },
+    "expected": { "type": "funding", "min_strength": 0.45 }
+  }
+]

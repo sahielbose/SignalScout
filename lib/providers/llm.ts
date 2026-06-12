@@ -57,7 +57,14 @@ export interface LlmRunRecord {
   ok?: boolean;
 }
 
+let loggingEnabled = true;
+/** Disable llm_runs persistence (used by the eval runner so it needs no DB). */
+export function setLlmLogging(on: boolean): void {
+  loggingEnabled = on;
+}
+
 export async function logLlmRun(rec: LlmRunRecord): Promise<void> {
+  if (!loggingEnabled) return;
   const tokens = (rec.inputTokens ?? 0) + (rec.outputTokens ?? 0);
   try {
     await db.insert(llmRuns).values({

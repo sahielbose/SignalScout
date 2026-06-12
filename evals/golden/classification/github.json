@@ -1,0 +1,63 @@
+[
+  {
+    "input": {
+      "source": "github",
+      "externalId": "stripe/stripe-node:1",
+      "url": "https://github.com/stripe/stripe-node/releases/tag/v22.2.0",
+      "actor": { "kind": "company", "name": "stripe", "githubLogin": "stripe" },
+      "title": "stripe-node v22.2.0",
+      "text": "stripe/stripe-node released v22.2.0. Added support for new payment methods and updated types for the API.",
+      "hintType": "github_release"
+    },
+    "expected": { "type": "github_release", "min_strength": 0.3 }
+  },
+  {
+    "input": {
+      "source": "github",
+      "externalId": "openai/openai-python:2",
+      "url": "https://github.com/openai/openai-python/releases/tag/v2.34.0",
+      "actor": { "kind": "company", "name": "openai", "githubLogin": "openai" },
+      "title": "openai-python v2.34.0",
+      "text": "openai/openai-python released v2.34.0. New client features and bug fixes for the SDK.",
+      "hintType": "github_release"
+    },
+    "expected": { "type": "github_release", "min_strength": 0.3 }
+  },
+  {
+    "input": {
+      "source": "github",
+      "externalId": "vercel/next.js:3",
+      "url": "https://github.com/vercel/next.js/releases/tag/v15.2.0",
+      "actor": { "kind": "company", "name": "vercel", "githubLogin": "vercel" },
+      "title": "next.js v15.2.0",
+      "text": "vercel/next.js released v15.2.0 — Turbopack improvements and a new caching API for the developer platform.",
+      "hintType": "github_release"
+    },
+    "expected": { "type": "github_release", "min_strength": 0.3 }
+  },
+  {
+    "input": {
+      "source": "github",
+      "externalId": "vercel/ai:4",
+      "url": "https://github.com/vercel/ai/releases/tag/v4.0.0",
+      "actor": { "kind": "company", "name": "vercel", "githubLogin": "vercel" },
+      "title": "ai v4.0.0",
+      "text": "vercel/ai released v4.0.0 — Introducing a redesigned tool-calling API and provider registry for building agents.",
+      "hintType": "github_release"
+    },
+    "expected": { "type": "github_release", "min_strength": 0.3 },
+    "note": "a release note that says 'Introducing' is still a github_release (source-anchored)"
+  },
+  {
+    "input": {
+      "source": "github",
+      "externalId": "supabase/supabase:5",
+      "url": "https://github.com/supabase/supabase/releases/tag/v1.200.0",
+      "actor": { "kind": "company", "name": "supabase", "githubLogin": "supabase" },
+      "title": "supabase v1.200.0",
+      "text": "supabase/supabase released v1.200.0. New data and auth platform features for developers.",
+      "hintType": "github_release"
+    },
+    "expected": { "type": "github_release", "min_strength": 0.3 }
+  }
+]
