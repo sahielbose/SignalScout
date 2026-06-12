@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Signal Scout brand — "beacon / radar" system.
+ * Dark-first (html.dark in layout). :root holds the light theme; .dark overrides.
+ */
+@layer base {
+  :root {
+    --background: 210 33% 99%;
+    --foreground: 222 30% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 30% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 30% 12%;
+    --primary: 168 80% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 24% 95%;
+    --secondary-foreground: 222 30% 18%;
+    --muted: 210 24% 95%;
+    --muted-foreground: 215 14% 42%;
+    --accent: 210 28% 94%;
+    --accent-foreground: 222 30% 18%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 20% 88%;
+    --input: 214 20% 86%;
+    --ring: 168 80% 36%;
+    --beacon: 32 95% 48%;
+    --beacon-foreground: 0 0% 100%;
+    --beacon-muted: 32 80% 92%;
+    --radius: 0.6rem;
+  }
+
+  .dark {
+    --background: 222 32% 7%;
+    --foreground: 210 22% 92%;
+    --card: 222 28% 10%;
+    --card-foreground: 210 22% 92%;
+    --popover: 222 30% 9%;
+    --popover-foreground: 210 22% 92%;
+    --primary: 168 74% 44%;
+    --primary-foreground: 168 90% 7%;
+    --secondary: 222 20% 16%;
+    --secondary-foreground: 210 22% 90%;
+    --muted: 222 18% 14%;
+    --muted-foreground: 215 16% 62%;
+    --accent: 222 20% 18%;
+    --accent-foreground: 210 22% 92%;
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 16% 20%;
+    --input: 222 16% 22%;
+    --ring: 168 74% 44%;
+    --beacon: 36 96% 56%;
+    --beacon-foreground: 36 96% 9%;
+    --beacon-muted: 36 50% 22%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1, 'cv01' 1, 'ss01' 1;
+  }
+  ::selection {
+    @apply bg-primary/25;
+  }
+}
+
+/* subtle radar grid used on marketing / empty states */
+.radar-grid {
+  background-image:
+    radial-gradient(circle at center, hsl(var(--primary) / 0.08) 0, transparent 60%),
+    linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
+}
+
+/* thin scrollbars in the dense feed */
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 8px;
+}

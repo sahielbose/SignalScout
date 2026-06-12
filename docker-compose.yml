@@ -1,0 +1,39 @@
+# Signal Scout — local infra.
+# Postgres+pgvector on 5434 (host) to avoid colliding with other local DBs.
+# Optional SearXNG provides a fully-open search backend for the research agent.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: signalscout-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: signalscout
+      POSTGRES_PASSWORD: signalscout
+      POSTGRES_DB: signalscout
+    ports:
+      - '5434:5432'
+    volumes:
+      - signalscout-pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U signalscout -d signalscout']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Optional: fully-open search backend (swap for Tavily/Exa).
+  # Enable with: docker compose --profile open up -d
+  searxng:
+    image: searxng/searxng:latest
+    container_name: signalscout-searxng
+    profiles: ['open']
+    restart: unless-stopped
+    ports:
+      - '8888:8080'
+    environment:
+      SEARXNG_BASE_URL: http://localhost:8888/
+    volumes:
+      - ./db/searxng:/etc/searxng:rw
+
+volumes:
+  signalscout-pgdata:

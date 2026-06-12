@@ -1,0 +1,31 @@
+# Signal Scout — build phases (live checklist)
+
+Tick `[ ]` → `[x]` only when the phase's checkpoint passes AND it's committed.
+Build in order. On a block: make the reasonable assumption, log it below, stub behind a `TODO`, keep going.
+
+- [x] **Phase 0 — Scaffold.** Next.js 15 + TS + Tailwind + ui primitives; `docker-compose.yml` (Postgres+pgvector, optional SearXNG); Drizzle configured; `.env.example`; scripts. **Checkpoint:** `pnpm dev` boots (HTTP 200 ✓); `pnpm db:push` creates schema (20 tables ✓); pgvector enabled ✓.
+- [ ] **Phase 1 — Schema + auth.** All BUILD_PLAN §4 tables in Drizzle + pgvector HNSW + pg_trgm. Auth.js v5 (GitHub OAuth + magic link); first login creates org+user. **Checkpoint:** log in, org/user rows created; typecheck green.
+- [ ] **Phase 2 — Source adapters (free).** SEC EDGAR (Form D, UA + rate cap), Greenhouse + Lever + Ashby (public JSON), GitHub (Octokit), web-diff (content hash), lu.ma. Each → normalized `RawItem[]` with cursors. **Checkpoint:** script fetches real items from a real Greenhouse token, CIK, GitHub repo; tests assert field mapping.
+- [ ] **Phase 3 — Normalizer + entity resolution.** `normalizeDomain`/`normalizeName`; company-by-domain, person-by-strong-key; no name-only auto-merge; `content_hash` dedupe; upserts; `audit_logs` on merge decisions. **Checkpoint:** adapters twice → zero dupes; two same-name people do NOT merge.
+- [ ] **Phase 4 — ICPs + prefilter + classifier.** `/icps` CRUD; embed ICP defs; embedding prefilter (cosine, cap N/day/source); LLM classifier → `{type, strength, matched_icp_ids, justification}` (zod); persist signals; log `llm_runs`. **Checkpoint:** seeded ICP → classified matched signals; 10 hand-checked look right.
+- [ ] **Phase 5 — Eval harness.** `evals/golden/classification/*.json` (~30 hand-labeled real items); `evals/run.ts` prints per-type precision/recall and FAILS under threshold; wire `pnpm eval`. **Checkpoint:** `pnpm eval` prints metrics table, exits non-zero on regression.
+- [ ] **Phase 6 — Feed UI.** `/feed`: signal cards, type badges, filter bar, infinite scroll, Deep-research + Add-to-list. Our brand. **Checkpoint:** feed renders real classified signals; filters work; original product.
+- [ ] **Phase 7 — Deep-research agent.** Tools: `web_search`, `fetch_page` (SSRF-guarded), `github_lookup`. Tool-call cap + cost ceiling + cache. Dossier zod schema + citation guard. `/research` + `/people/[id]` panel, streamed. **Checkpoint:** dossier on a real person; every fact links to a source; common-name test doesn't mis-attribute.
+- [ ] **Phase 8 — Lists + CSV + REST API.** `/lists` CRUD + members; `GET /api/lists/:id/export.csv`; key-authed REST (`GET /api/signals`, `GET /api/people/:id`, `POST /api/people/:id/dossier`, `POST /api/research`). **Checkpoint:** CSV opens cleanly; REST returns scoped data with a valid key.
+- [ ] **Phase 9 — MCP server.** `mcp/` stdio + `app/api/mcp` HTTP. Tools: `search_signals`, `get_person`, `generate_dossier`, `list_signals_for_company`, `export_list`. `/integrations` copy-paste config. **Checkpoint:** real MCP round-trip returns real data.
+- [ ] **Phase 10 — Free tier + abuse control.** Per-user/org daily quotas on classify + research; Postgres token-bucket rate limiting (IP + user); dossier/classification caching; cheap model for classify; BYO-key flow (`/usage`); global budget kill-switch. **Checkpoint:** over-quota → clean 429 + BYO prompt; BYO key routes spend to the user.
+- [ ] **Phase 11 — Multi-tenancy + security.** Every query org-scoped; RLS or enforced scoping with cross-tenant-read tests; hash API keys at rest; HMAC-sign + verify outbound webhooks; tighten SSRF; security headers/CSP; input-validation audit. **Checkpoint:** cross-tenant access fails closed; webhook signature verifies.
+- [ ] **Phase 12 — Stage-2 delivery + accounts.** Signed webhooks on new high-strength matched signals; gated CRM push (confirm + audit, never auto); Slack notifications; daily/weekly email digest (Nodemailer); `/companies/[id]` timeline + org-tree; scheduled CSV→inbox/S3. **Checkpoint:** test webhook fires + verifies; digest renders; company view groups signals.
+- [ ] **Phase 13 — Observability + onboarding.** Structured logging; optional Sentry behind env; cost dashboard from `llm_runs`; in-app eval/metrics view; first-run onboarding (connect GitHub, define first ICP, seed sample signals); empty states. **Checkpoint:** a brand-new account is guided to a populated feed in a few clicks.
+- [ ] **Phase 14 — Deploy + docs + legal.** Dockerfiles (app + worker); deploy config (Vercel/Fly + separate worker + Neon/Supabase); health checks; migrations on deploy; thorough README; privacy/terms/data-removal stubs (flag GDPR/CCPA); final `typecheck && test && eval`. **Checkpoint:** fresh clone deploys from README; all gates green.
+
+---
+
+## Assumptions / Blockers / Decisions
+
+- **2026-06-12 — Project location:** Built in its own repo `/Users/sahielbose/Signal-Scout` (remote `github.com/sahielbose/Signal-Scout`), fully separate from any other project per the kickoff instruction.
+- **2026-06-12 — Flat single-package, not a pnpm workspace.** BUILD_PLAN §2 says "keep it flat for a 1-day build"; one `package.json`, one `tsconfig`, shared `node_modules`. `worker/` and `mcp/` run via `tsx`. Simpler typecheck/install; revisit if it ever needs independent deploys.
+- **2026-06-12 — Local DB port 5434** (not 5432/5433) to avoid colliding with other local Postgres containers on this machine.
+- **2026-06-12 — shadcn primitives hand-rolled** (`components/ui/*`) instead of the interactive `shadcn` CLI, to keep the build non-interactive/deterministic. Same Radix + cva + Tailwind-variable approach.
+- **2026-06-12 — Embeddings:** if no remote embedder key is set, fall back to a deterministic local hash-based embedding so the prefilter still functions offline (flagged TODO to swap for a real embedder). Keeps the build runnable with zero keys.
+- **2026-06-12 — Model IDs:** classify defaults to `claude-haiku-4-5-20251001` (cheap), research to `claude-sonnet-4-6`. Overridable via env. With no `ANTHROPIC_API_KEY`, LLM calls use a deterministic mock so the pipeline + evals run offline (flagged).
