@@ -4,6 +4,7 @@ import { env } from '@/lib/env';
 import { PageHeader } from '@/components/app/page-header';
 import { Card } from '@/components/ui/card';
 import { ApiKeys } from '@/components/integrations/api-keys';
+import { CopyBlock } from '@/components/integrations/copy-block';
 
 export const metadata = { title: 'Integrations — Signal Scout' };
 export const dynamic = 'force-dynamic';
@@ -48,11 +49,38 @@ curl -H "Authorization: Bearer \$SSK" \\
           </pre>
         </Card>
 
-        <Card className="p-5 opacity-80">
-          <h2 className="text-sm font-semibold">MCP server</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Copy-paste Claude Desktop / Cursor config lands in Phase 9 — query your signals and generate dossiers from inside your agent.
-          </p>
+        <Card className="space-y-4 p-5">
+          <div>
+            <h2 className="text-sm font-semibold">MCP server</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Query signals and generate cited dossiers from inside Claude Desktop or Cursor. Tools:{' '}
+              <code>search_signals</code>, <code>get_person</code>, <code>generate_dossier</code>,{' '}
+              <code>list_signals_for_company</code>, <code>export_list</code>. Replace <code>$SSK</code> with an API key above.
+            </p>
+          </div>
+          <CopyBlock
+            label="Claude Desktop / Cursor — HTTP (hosted)"
+            code={`{
+  "mcpServers": {
+    "signal-scout": {
+      "url": "${base}/api/mcp",
+      "headers": { "Authorization": "Bearer $SSK" }
+    }
+  }
+}`}
+          />
+          <CopyBlock
+            label="Claude Desktop — local stdio (self-host)"
+            code={`{
+  "mcpServers": {
+    "signal-scout": {
+      "command": "pnpm",
+      "args": ["--dir", "/path/to/Signal-Scout", "mcp"],
+      "env": { "SIGNALSCOUT_API_KEY": "$SSK" }
+    }
+  }
+}`}
+          />
         </Card>
       </div>
     </>
