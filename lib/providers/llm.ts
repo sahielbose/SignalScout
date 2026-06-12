@@ -5,7 +5,7 @@ import { db } from '@/lib/db/client';
 import { llmRuns } from '@/lib/db/schema';
 import { env, hasLLM } from '@/lib/env';
 
-export type LlmKind = 'classify' | 'research' | 'embed';
+export type LlmKind = 'classify' | 'research' | 'dossier' | 'embed';
 
 /** Resolve a concrete AI-SDK model for a task, or null → caller uses a mock. */
 export function getModel(kind: Exclude<LlmKind, 'embed'>): LanguageModel | null {

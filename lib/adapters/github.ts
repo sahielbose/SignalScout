@@ -1,7 +1,7 @@
 import type { RawItem } from '@/lib/types';
 import type { Adapter, AdapterInput, AdapterResult, AdapterCursor } from './types';
 import { isNewer } from './types';
-import { env } from '@/lib/env';
+import { getOctokit } from '@/lib/providers/github-client';
 
 export interface GithubRelease {
   id: number;
@@ -43,23 +43,6 @@ export function mapGithubRelease(owner: string, repo: string, r: GithubRelease):
     hintType: 'github_release',
     meta: { owner, repo, tag: r.tag_name, prerelease: !!r.prerelease, releaseId: r.id },
   };
-}
-
-let octokitPromise: Promise<import('octokit').Octokit> | null = null;
-async function getOctokit() {
-  if (!octokitPromise) {
-    octokitPromise = import('octokit').then(
-      ({ Octokit }) =>
-        new Octokit({
-          auth: env().GITHUB_TOKEN || undefined,
-          // Fail fast on rate limits — never let a throttled request hang the
-          // whole ingestion pipeline waiting on a (possibly hour-long) retry.
-          throttle: { onRateLimit: () => false, onSecondaryRateLimit: () => false },
-          request: { retries: 0 },
-        }),
-    );
-  }
-  return octokitPromise;
 }
 
 export const githubAdapter: Adapter = {

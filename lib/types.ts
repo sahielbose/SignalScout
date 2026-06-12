@@ -113,6 +113,7 @@ export const DossierSchema = z.object({
   }),
   tags: z.array(z.string()).default([]),
   structured: DossierStructuredSchema,
+  summary: z.string().optional(),
   why_they_care: z.string(),
   suggested_opener: z.string(),
   confidence: z.number().min(0).max(1).default(0),
