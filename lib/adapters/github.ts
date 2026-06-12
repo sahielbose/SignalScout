@@ -49,7 +49,14 @@ let octokitPromise: Promise<import('octokit').Octokit> | null = null;
 async function getOctokit() {
   if (!octokitPromise) {
     octokitPromise = import('octokit').then(
-      ({ Octokit }) => new Octokit({ auth: env().GITHUB_TOKEN || undefined }),
+      ({ Octokit }) =>
+        new Octokit({
+          auth: env().GITHUB_TOKEN || undefined,
+          // Fail fast on rate limits — never let a throttled request hang the
+          // whole ingestion pipeline waiting on a (possibly hour-long) retry.
+          throttle: { onRateLimit: () => false, onSecondaryRateLimit: () => false },
+          request: { retries: 0 },
+        }),
     );
   }
   return octokitPromise;
