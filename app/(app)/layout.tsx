@@ -4,6 +4,7 @@ import { db } from '@/lib/db/client';
 import { organizations } from '@/lib/db/schema';
 import { Sidebar } from '@/components/app/sidebar';
 import { UserMenu } from '@/components/app/user-menu';
+import { Toaster } from '@/components/ui/toaster';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
@@ -26,6 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </header>
         <main className="scroll-thin flex-1 overflow-y-auto">{children}</main>
       </div>
+      <Toaster />
     </div>
   );
 }
