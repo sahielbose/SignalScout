@@ -1,0 +1,32 @@
+# Fly.io config for the Signal Scout WEB APP.
+# Deploy: fly launch --no-deploy && fly secrets set DATABASE_URL=... AUTH_SECRET=... && fly deploy
+# Run the worker as a SEPARATE Fly app from Dockerfile.worker (it needs an
+# always-on machine; the web app can scale to zero, the worker cannot).
+app = "signalscout-app"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3000"
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/api/health"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512

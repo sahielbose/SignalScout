@@ -94,8 +94,42 @@ Free sources ─▶ Source adapters ─▶ Normalizer + entity resolution ─▶
 
 See [`BUILD_PLAN.md`](./BUILD_PLAN.md) for the full spec and [`PHASES.md`](./PHASES.md) for build status.
 
+## Configuration
+
+Everything is read from the environment (see [`.env.example`](./.env.example)). Nothing is required to boot — missing keys degrade to safe fallbacks:
+
+| Variable | Purpose | If unset |
+|---|---|---|
+| `DATABASE_URL` | Postgres + pgvector | defaults to the local `:5434` container |
+| `AUTH_SECRET` | session signing | generate with `openssl rand -hex 32` |
+| `AUTH_GITHUB_ID/SECRET` | GitHub OAuth login | dev password-less sign-in is used |
+| `SMTP_URL` | email magic links + digests | links/digests are logged, not sent |
+| `SEC_USER_AGENT` | required by SEC EDGAR | a default UA is sent |
+| `GITHUB_TOKEN` | higher GitHub rate limit | unauthenticated (60/hr) |
+| `LLM_PROVIDER` + `ANTHROPIC_API_KEY` | classifier + dossiers | deterministic mock classifier/dossier |
+| `SEARCH_PROVIDER` + `TAVILY_API_KEY`/`EXA_API_KEY` | web search in research | GitHub-only, cited dossiers |
+| `DAILY_*_QUOTA`, `GLOBAL_KILL_SWITCH` | free-tier guards | sensible defaults |
+
+## Deployment
+
+Two processes: the **web app** (serverless-friendly) and the **worker** (always-on, runs pg-boss).
+
+- **Render** — `render.yaml` provisions app + worker + Postgres in one blueprint. Point `DATABASE_URL` at a pgvector-capable Postgres (Render managed PG, Neon, or Supabase).
+- **Fly.io** — `fly.toml` deploys the app from `Dockerfile`; deploy the worker as a second Fly app from `Dockerfile.worker`.
+- **Vercel** — `vercel.json` for the app; run the worker elsewhere (Fly/Render/a VM) — never inside serverless.
+- **Self-host** — `docker build -t ss-app .` and `docker build -f Dockerfile.worker -t ss-worker .`, point both at a Postgres with `vector`/`pg_trgm`.
+
+**Migrations on deploy:** `pnpm db:generate` writes SQL to `drizzle/`; `pnpm db:migrate` applies it (and creates extensions). The worker image runs `db:migrate` on boot. Health check: `GET /api/health` (checks DB).
+
+## Legal & data
+
+Signal Scout stores public professional data about real people. Before running it for strangers, review the bundled
+[Privacy Policy](/privacy), [Terms](/terms), and [data-removal request](/data-removal) templates and your **GDPR/CCPA**
+obligations (legitimate-interest basis, access/deletion rights, statutory response windows). Dossiers are **not** FCRA
+consumer reports. No LinkedIn/X scraping; free/public sources only.
+
 ## Open-source posture
 
-The core is MIT/Apache/Postgres-licensed and self-hostable. License: MIT.
-We store data about real people from public sources — see the privacy/data-removal notes
-(Phase 14) for GDPR/CCPA obligations before running this for strangers.
+The core is MIT/Apache/Postgres-licensed and self-hostable end-to-end. License: MIT. The only optional closed pieces —
+the LLM API and hosted search — sit behind interfaces with open self-host swaps (Ollama/vLLM; SearXNG + fetch). No
+closed dependency is load-bearing; no secret ever goes in code.

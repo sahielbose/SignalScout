@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.env
+.env.local
+*.log
+coverage
+.vitest
+/tmp
+README.md
+.DS_Store
+db/init

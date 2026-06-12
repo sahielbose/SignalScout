@@ -27,6 +27,8 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: 'standalone', // self-contained server for slim Docker images
+
   // Checkpoints gate on `pnpm typecheck` (tsc) + tests + evals, not on lint.
   // Keep `next build` from failing on lint so deploys are deterministic.
   eslint: { ignoreDuringBuilds: true },

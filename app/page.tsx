@@ -86,7 +86,13 @@ export default function Home() {
       <footer className="border-t">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 py-8 text-sm text-muted-foreground sm:flex-row">
           <Wordmark className="text-sm" />
-          <p>MIT-licensed. Built on free and public data sources.</p>
+          <div className="flex items-center gap-4">
+            <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+            <Link href="/terms" className="hover:text-foreground">Terms</Link>
+            <Link href="/data-removal" className="hover:text-foreground">Data removal</Link>
+            <span className="hidden sm:inline">·</span>
+            <span>MIT-licensed · public data only</span>
+          </div>
         </div>
       </footer>
     </main>
