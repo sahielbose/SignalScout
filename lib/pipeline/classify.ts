@@ -5,6 +5,7 @@ import { listActiveIcps } from '@/lib/icp/service';
 import { embedOne } from '@/lib/providers/embed';
 import { prefilter, type IcpWithEmbedding } from '@/lib/classify/prefilter';
 import { classify } from '@/lib/classify/classifier';
+import { consumeQuota } from '@/lib/quota/service';
 import type { SignalType } from '@/lib/types';
 
 const MAX_ICPS_IN_PROMPT = 8;
@@ -35,8 +36,17 @@ export async function classifyPendingSignals(opts: {
 
   let classified = 0;
   let matched = 0;
+  let skipped = 0;
 
   for (const s of pending) {
+    // daily classify-budget ceiling (per org) — stop when exhausted
+    if (opts.orgId) {
+      const q = await consumeQuota(opts.orgId, 'classify');
+      if (!q.allowed) {
+        skipped = pending.length - classified;
+        break;
+      }
+    }
     const text = [s.title, s.rawContent].filter(Boolean).join('\n');
     const embedding = await embedOne(text || s.source);
     const pf = prefilter(embedding, activeIcps);
@@ -87,5 +97,5 @@ export async function classifyPendingSignals(opts: {
     if (result.matchedIcpIds.length) matched++;
   }
 
-  return { classified, matched, skipped: 0 };
+  return { classified, matched, skipped };
 }

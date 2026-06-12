@@ -4,6 +4,8 @@ import { authenticateRequest, unauthorized } from '@/lib/api/auth';
 import { db } from '@/lib/db/client';
 import { people, companies } from '@/lib/db/schema';
 import { generateDossier } from '@/lib/research/agent';
+import { rateLimit, clientIp } from '@/lib/quota/ratelimit';
+import { enforceQuota, QuotaError } from '@/lib/quota/service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,6 +15,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const actor = await authenticateRequest(req);
   if (!actor) return unauthorized();
   const { id } = await params;
+
+  const rl = await rateLimit(`research:ip:${clientIp(req)}`, { capacity: 10, refillPerSec: 0.2 });
+  if (!rl.allowed) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+
+  const byoKey = req.headers.get('x-llm-key');
+  try {
+    await enforceQuota(actor.orgId, 'research', { byoKey: !!byoKey });
+  } catch (err) {
+    if (err instanceof QuotaError) {
+      return NextResponse.json({ error: 'quota_exceeded', detail: err.message, used: err.used, limit: err.limit }, { status: 429 });
+    }
+    throw err;
+  }
 
   const [p] = await db.select().from(people).where(eq(people.id, id)).limit(1);
   if (!p) return NextResponse.json({ error: 'not_found' }, { status: 404 });
@@ -35,6 +50,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     githubLogin: p.githubLogin,
     title: p.title,
     orgId: actor.orgId,
+    llmApiKey: byoKey,
     force: body?.force === true,
   });
 

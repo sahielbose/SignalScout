@@ -7,13 +7,18 @@ import { env, hasLLM } from '@/lib/env';
 
 export type LlmKind = 'classify' | 'research' | 'dossier' | 'embed';
 
-/** Resolve a concrete AI-SDK model for a task, or null → caller uses a mock. */
-export function getModel(kind: Exclude<LlmKind, 'embed'>): LanguageModel | null {
+/**
+ * Resolve a concrete AI-SDK model for a task, or null → caller uses a mock.
+ * `overrideKey` (a user's bring-your-own Anthropic key) takes precedence over env
+ * so power users pay their own LLM spend.
+ */
+export function getModel(kind: Exclude<LlmKind, 'embed'>, overrideKey?: string | null): LanguageModel | null {
   const e = env();
-  if (!hasLLM()) return null;
+  if (e.GLOBAL_KILL_SWITCH) return null; // emergency brake halts all model spend
   if (e.LLM_PROVIDER === 'anthropic') {
-    if (!e.ANTHROPIC_API_KEY) return null;
-    const anthropic = createAnthropic({ apiKey: e.ANTHROPIC_API_KEY });
+    const apiKey = overrideKey || e.ANTHROPIC_API_KEY;
+    if (!apiKey) return null;
+    const anthropic = createAnthropic({ apiKey });
     return anthropic(kind === 'classify' ? e.LLM_CLASSIFY_MODEL : e.LLM_RESEARCH_MODEL);
   }
   if (e.LLM_PROVIDER === 'ollama') {

@@ -5,7 +5,6 @@ import { db } from '@/lib/db/client';
 import { dossiers, people } from '@/lib/db/schema';
 import { resolvePerson } from '@/lib/entity/resolution';
 import { getModel, modelId, logLlmRun } from '@/lib/providers/llm';
-import { hasLLM } from '@/lib/env';
 import { type Dossier, type Fact } from '@/lib/types';
 import { searchWeb, fetchPage, githubLookup, type GithubProfile } from './tools';
 import { enforceCitations, type GuardedDossier } from './dossier';
@@ -26,6 +25,8 @@ export interface DossierInput {
   title?: string | null;
   personId?: string | null;
   orgId?: string | null;
+  /** A user's bring-your-own Anthropic key — routes LLM spend to them. */
+  llmApiKey?: string | null;
   force?: boolean;
 }
 
@@ -160,7 +161,7 @@ async function buildLlmDossier(
   evidence: Evidence[],
   orgId?: string | null,
 ): Promise<{ dossier: Dossier; costUsd: number; model: string } | null> {
-  const model = getModel('research');
+  const model = getModel('research', input.llmApiKey);
   if (!model) return null;
 
   const ghBlock = gh && gh.matchConfidence >= GH_ATTRIBUTION_MIN ? gh : null;
@@ -282,19 +283,15 @@ export async function generateDossier(input: DossierInput): Promise<DossierResul
     if (page.ok && page.text.length > 80) evidence.push({ url: page.url, title: page.title, content: page.text.slice(0, 1500) });
   }
 
-  // 3) synthesize
+  // 3) synthesize — use a real model (env or BYO key) when available, else mock
   let raw: Dossier;
   let model = 'mock';
   let costUsd = 0;
-  if (hasLLM()) {
-    const llm = await buildLlmDossier(input, gh, evidence, input.orgId).catch(() => null);
-    if (llm) {
-      raw = llm.dossier;
-      model = llm.model;
-      costUsd = llm.costUsd;
-    } else {
-      raw = buildMockDossier(input, gh);
-    }
+  const llm = await buildLlmDossier(input, gh, evidence, input.orgId).catch(() => null);
+  if (llm) {
+    raw = llm.dossier;
+    model = llm.model;
+    costUsd = llm.costUsd;
   } else {
     raw = buildMockDossier(input, gh);
     await logLlmRun({ orgId: input.orgId, kind: 'dossier', model: 'mock', promptVersion: PROMPT_VERSION, input: { name: input.name }, output: { tags: raw.tags }, latencyMs: 0 });

@@ -85,7 +85,15 @@ export function ResearchForm({ defaults }: { defaults?: { name?: string; company
         </Card>
       )}
 
-      {res && !res.ok && (
+      {res && !res.ok && res.quotaExceeded && (
+        <Card className="border-beacon/40 bg-beacon/5 p-4 text-sm">
+          <p className="text-beacon">{res.error}</p>
+          <a href="/usage" className="mt-1 inline-block text-xs text-primary underline-offset-4 hover:underline">
+            Add your own API key on the Usage page →
+          </a>
+        </Card>
+      )}
+      {res && !res.ok && !res.quotaExceeded && (
         <Card className="border-destructive/40 p-4 text-sm text-destructive">{res.error}</Card>
       )}
 

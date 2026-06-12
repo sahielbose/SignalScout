@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { authenticateRequest, unauthorized } from '@/lib/api/auth';
 import { generateDossier } from '@/lib/research/agent';
 import { normalizeLinkedinUrl } from '@/lib/entity/normalize';
+import { rateLimit, clientIp } from '@/lib/quota/ratelimit';
+import { enforceQuota, QuotaError } from '@/lib/quota/service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,6 +22,25 @@ const BodySchema = z.object({
 export async function POST(req: Request) {
   const actor = await authenticateRequest(req);
   if (!actor) return unauthorized();
+
+  // per-IP burst limit (fail-open on infra errors)
+  const rl = await rateLimit(`research:ip:${clientIp(req)}`, { capacity: 10, refillPerSec: 0.2 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'rate_limited', detail: 'Too many requests — slow down.' }, { status: 429 });
+  }
+
+  const byoKey = req.headers.get('x-llm-key');
+  try {
+    await enforceQuota(actor.orgId, 'research', { byoKey: !!byoKey });
+  } catch (err) {
+    if (err instanceof QuotaError) {
+      return NextResponse.json(
+        { error: 'quota_exceeded', detail: err.message, used: err.used, limit: err.limit, byo_key_hint: 'Send an X-LLM-Key header to use your own LLM key.' },
+        { status: 429 },
+      );
+    }
+    throw err;
+  }
 
   const parsed = BodySchema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) {
@@ -40,6 +61,7 @@ export async function POST(req: Request) {
     linkedinUrl,
     githubLogin: b.github_login ?? null,
     orgId: actor.orgId,
+    llmApiKey: byoKey,
     force: b.force,
   });
 
