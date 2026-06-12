@@ -81,6 +81,8 @@ export type SignalClassificationMeta = Partial<{
   model: string;
   promptVersion: string;
   prefilterScore: number;
+  /** Adapter's type hint, carried through ingestion as a prior for the classifier. */
+  hint: SignalType;
 }>;
 
 // ───────────────────────── dossier (cited) ─────────────────────────
