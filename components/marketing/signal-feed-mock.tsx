@@ -117,7 +117,7 @@ const cards: FeedCard[] = [
 /** Static, non-animated feed stream that fades out at the top edge. */
 export function SignalFeedMock() {
   return (
-    <div className="feed-fade relative h-[620px] space-y-3 overflow-hidden">
+    <div className="relative h-[620px] space-y-3 overflow-hidden">
       {cards.map((c, i) => (
         <SignalCardMock key={i} card={c} />
       ))}

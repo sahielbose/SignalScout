@@ -29,7 +29,7 @@ export function Hero() {
             </Button>
           </div>
         </div>
-        <div className="lg:-mt-16">
+        <div>
           <SignalFeedMock />
         </div>
       </div>
