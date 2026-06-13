@@ -40,3 +40,29 @@ export function stripDashes(s: string): string {
   // U+2014 em dash and U+2013 en dash become a plain hyphen.
   return s.replace(/[\u2014\u2013]/g, '-');
 }
+
+/**
+ * Flatten source text (often markdown changelogs or GitHub release notes) into a
+ * clean one-line plain-text snippet for cards. Strips headings, list bullets,
+ * emphasis, code fences/backticks, link/image syntax, and stray HTML, then
+ * collapses whitespace. Display-only; never mutate stored data with this.
+ */
+export function plainText(input: string | null | undefined): string {
+  if (!input) return '';
+  return input
+    .replace(/```[\s\S]*?```/g, ' ') // fenced code blocks
+    .replace(/`([^`]*)`/g, '$1') // inline code
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ') // images
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1') // links -> label
+    .replace(/<!--[\s\S]*?-->/g, ' ') // html comments
+    .replace(/<[^>]+>/g, ' ') // stray html tags
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '') // headings
+    .replace(/^\s{0,3}>\s?/gm, '') // blockquotes
+    .replace(/^\s*[-*+]\s+/gm, '') // bullet markers
+    .replace(/^\s*\d+\.\s+/gm, '') // numbered list markers
+    .replace(/(\*\*|__)(.*?)\1/g, '$2') // bold
+    .replace(/(\*|_)(.*?)\1/g, '$2') // italic
+    .replace(/~~(.*?)~~/g, '$1') // strikethrough
+    .replace(/\s+/g, ' ') // collapse whitespace
+    .trim();
+}

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { ArrowDownWideNarrow, LayoutList, Rows3, Search, SlidersHorizontal, X } from 'lucide-react';
+import { ArrowDownWideNarrow, ChevronDown, LayoutList, Rows3, Search, SlidersHorizontal, X } from 'lucide-react';
 import { SIGNAL_TYPE_LABELS, SOURCE_LABELS, type SignalType, type SourceName } from '@/lib/types';
 import { usePref } from '@/lib/hooks/use-pref';
 import type { SavedView } from '@/lib/views/service';
@@ -39,6 +39,11 @@ export function FilterBar({ options, savedViews }: { options: FilterOption; save
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+
+  // Advanced filters live in a collapsible panel so the bar stays clean by
+  // default; the toggle is remembered per browser. A badge keeps active filters
+  // visible even when the panel is closed, so nothing hides silently.
+  const [filtersOpen, setFiltersOpen] = usePref<boolean>('feed-filters-open', false);
 
   const [density, setDensityPref] = usePref<FeedDensity>('feed-density', 'comfortable');
   const setDensity = useCallback(
@@ -111,6 +116,15 @@ export function FilterBar({ options, savedViews }: { options: FilterOption; save
   const selectedTypes = readMulti(params, 'type');
   const selectedSources = readMulti(params, 'source');
 
+  // How many narrowing filters are active right now (search and sort live in the
+  // always-visible row, so they are not counted here). Drives the toggle badge.
+  const activeFilterCount =
+    (params.get('icpId') ? 1 : 0) +
+    (params.get('minStrength') ? 1 : 0) +
+    (params.get('sinceDays') ? 1 : 0) +
+    selectedTypes.length +
+    selectedSources.length;
+
   const hasFilters = FILTER_KEYS.some((k) => params.get(k));
   const clearFilters = useCallback(() => {
     const next = new URLSearchParams(params.toString());
@@ -182,17 +196,39 @@ export function FilterBar({ options, savedViews }: { options: FilterOption; save
           </button>
         </div>
 
+        {/* Toggle for the advanced filter panel. The badge shows the active count
+            so a collapsed panel never hides what is narrowing the list. */}
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(!filtersOpen)}
+          aria-expanded={filtersOpen}
+          className={cn(
+            'inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors duration-200',
+            activeFilterCount > 0 || filtersOpen
+              ? 'border-ring/60 text-foreground'
+              : 'border-input text-muted-foreground hover:border-ring/60 hover:text-foreground',
+          )}
+        >
+          <SlidersHorizontal className="size-4" />
+          Filters
+          {activeFilterCount > 0 && (
+            <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground">
+              {activeFilterCount}
+            </span>
+          )}
+          <ChevronDown className={cn('size-3.5 transition-transform duration-200', filtersOpen && 'rotate-180')} />
+        </button>
+
         <div className="ml-auto">
           <SavedViews views={savedViews} />
         </div>
       </div>
 
+      {/* Advanced filters: collapsed by default, remembered per browser. */}
+      {filtersOpen && (
+        <>
       {/* Row 2: filters */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <SlidersHorizontal className="size-4" /> Filters
-        </span>
-
         <select
           aria-label="Filter by customer type (the kind of customer you sell to)"
           className={selectCls}
@@ -270,6 +306,8 @@ export function FilterBar({ options, savedViews }: { options: FilterOption; save
           selected={selectedSources}
           onToggle={(v) => toggleMulti('source', v)}
         />
+      )}
+        </>
       )}
     </div>
   );

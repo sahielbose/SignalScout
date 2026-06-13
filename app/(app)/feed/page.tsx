@@ -109,10 +109,7 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
           savedViews={savedViews}
         />
         <div className="flex flex-wrap items-center justify-between gap-2 px-6 pt-3 text-xs text-muted-foreground">
-          <p>
-            Narrow the list with the filters above, then act on each signal: open the source, run deep research,
-            or clear it with Actioned, Snooze, or Dismiss.
-          </p>
+          <p>Each card is one public buying moment that matches who you sell to.</p>
           <Link
             href={toggleClearedHref(query, showCleared)}
             className="shrink-0 font-medium underline-offset-4 hover:text-foreground hover:underline"

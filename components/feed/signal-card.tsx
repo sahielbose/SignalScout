@@ -14,15 +14,16 @@ import {
   reopenSignalAction,
   type StatusActionResult,
 } from '@/lib/feed/status-actions';
-import { cn, relativeTime, truncate } from '@/lib/utils';
+import { cn, relativeTime, truncate, plainText } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/lib/toast';
 
 function cleanSummary(item: FeedItem): string {
   const raw = (item.summary ?? '').replace(/^Content change detected on [^:]+:\s*/i, '');
-  // drop a leading "X is hiring: title" duplication if the title already covers it
-  return truncate(raw.replace(/\s+/g, ' ').trim(), 200);
+  // Source bodies are often markdown changelogs or release notes; flatten to clean
+  // prose so cards never show raw "### Misc Changes - [codemod]" style noise.
+  return truncate(plainText(raw), 200);
 }
 
 const STATUS_LABELS: Record<Exclude<SignalStatusValue, 'open'>, string> = {
