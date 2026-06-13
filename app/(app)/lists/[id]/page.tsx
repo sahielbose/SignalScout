@@ -32,6 +32,7 @@ import { getCrmProvider } from '@/lib/providers/crm';
 import { hasCrm } from '@/lib/env';
 import { CrmPush } from '@/components/lists/crm-push';
 import { PageHeader } from '@/components/app/page-header';
+import { SummarizeButton } from '@/components/summarize/summarize-button';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -191,6 +192,7 @@ export default async function ListDetailPage({
           configured={crmConfigured}
           provider={crmProvider}
         />
+        {totalCount > 0 && <SummarizeButton surface="list" listId={id} />}
       </PageHeader>
 
       <div className="mx-auto max-w-4xl space-y-3 p-6">

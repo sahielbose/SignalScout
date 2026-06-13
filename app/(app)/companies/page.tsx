@@ -11,6 +11,7 @@ import {
 import { getOrgIcpIds } from '@/lib/feed/queries';
 import { listSavedViews } from '@/lib/views/service';
 import { PageHeader } from '@/components/app/page-header';
+import { SummarizeButton } from '@/components/summarize/summarize-button';
 import { Card } from '@/components/ui/card';
 import { buttonVariants } from '@/components/ui/button';
 import { CompaniesToolbar, CompaniesList } from '@/components/companies/org-tree';
@@ -68,6 +69,7 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Pr
       <PageHeader
         title="Companies you are watching"
         description="Every company where we have spotted a public buying sign that matches the kind of customer you sell to. Open one to see its full timeline and who works there."
+        actions={!trulyEmpty ? <SummarizeButton surface="companies" /> : undefined}
       />
       <div className="mx-auto max-w-3xl p-6">
         {trulyEmpty ? (
