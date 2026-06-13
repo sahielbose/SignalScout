@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import { requireOrgId } from '@/lib/auth/session';
 import { runClassificationEval } from '@/lib/evals/report';
 import { getCostSeries, getCostByKind } from '@/lib/observability/cost';
@@ -8,11 +9,18 @@ import { CostChart } from '@/components/evals/cost-chart';
 import { cn } from '@/lib/utils';
 
 export const metadata = { title: 'Metrics - Signal Scout' };
-export const dynamic = 'force-dynamic';
+
+// The classification eval makes ~30 real LLM calls (~45s + token cost). It is
+// org-independent (fixed golden set + EVAL_ICP), so cache it for a day instead
+// of re-running on every page view. Cost queries below stay live (per-request).
+const getCachedReport = unstable_cache(runClassificationEval, ['classification-eval'], {
+  revalidate: 60 * 60 * 24,
+  tags: ['eval-report'],
+});
 
 export default async function EvalsPage() {
   const orgId = await requireOrgId();
-  const [report, series, byKind] = await Promise.all([runClassificationEval(), getCostSeries(orgId, 14), getCostByKind(orgId)]);
+  const [report, series, byKind] = await Promise.all([getCachedReport(), getCostSeries(orgId, 14), getCostByKind(orgId)]);
   const totalCost = byKind.reduce((s, k) => s + k.cost, 0);
   const totalCalls = byKind.reduce((s, k) => s + k.calls, 0);
 

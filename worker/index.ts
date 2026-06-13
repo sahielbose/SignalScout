@@ -6,7 +6,7 @@
  */
 import 'dotenv/config';
 import PgBoss from 'pg-boss';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { icps, users } from '@/lib/db/schema';
 import { runSources } from '@/lib/pipeline/ingest';
@@ -49,8 +49,18 @@ async function digestJob() {
       .orderBy(desc(users.createdAt))
       .limit(1);
     if (!owner?.email) continue;
+
+    // Only digest signals that match an ICP whose notify.email is on.
+    const emailIcps = await db
+      .select({ id: icps.id })
+      .from(icps)
+      .where(and(eq(icps.orgId, orgId), eq(icps.active, true), eq(sql`${icps.definition}->'notify'->>'email'`, 'true')));
+    const emailIcpIds = new Set(emailIcps.map((r) => r.id));
+    if (emailIcpIds.size === 0) continue;
+
     const { items } = await getFeed(orgId, { sinceDays: 1, minStrength: 0.6 }, 0);
-    const signals: DigestSignal[] = items.map((s) => ({ type: s.type, strength: s.strength, company: s.companyName, title: s.title, summary: s.summary, url: s.sourceUrl, source: s.source }));
+    const emailItems = items.filter((s) => s.matchedIcpIds.some((id) => emailIcpIds.has(id)));
+    const signals: DigestSignal[] = emailItems.map((s) => ({ type: s.type, strength: s.strength, company: s.companyName, title: s.title, summary: s.summary, url: s.sourceUrl, source: s.source }));
     const { subject, html, text } = renderDigest('your workspace', signals, appUrl);
     const r = await sendEmail({ to: owner.email, subject, html, text });
     log(`digest → ${owner.email} (${signals.length} signals, via ${r.via})`);

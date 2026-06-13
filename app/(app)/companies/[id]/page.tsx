@@ -13,9 +13,9 @@ import { cn, relativeTime } from '@/lib/utils';
 export const dynamic = 'force-dynamic';
 
 export default async function CompanyPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireOrgId();
+  const orgId = await requireOrgId();
   const { id } = await params;
-  const profile = await getCompanyProfile(id);
+  const profile = await getCompanyProfile(orgId, id);
   if (!profile) notFound();
   const { company, timeline, byType, departments } = profile;
 

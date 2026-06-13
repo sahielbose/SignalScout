@@ -70,7 +70,7 @@ export function ResearchForm({ defaults }: { defaults?: { name?: string; company
             </div>
           )}
 
-          <Button type="submit" disabled={pending || (!name && !linkedinUrl)}>
+          <Button type="submit" disabled={pending || (!name && !linkedinUrl && !githubLogin)}>
             {pending ? <Loader2 className="animate-spin" /> : <FileSearch />}
             {pending ? 'Researching…' : 'Research'}
           </Button>

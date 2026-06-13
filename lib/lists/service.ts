@@ -12,6 +12,17 @@ export async function deleteList(orgId: string, id: string) {
   await db.delete(lists).where(and(eq(lists.id, id), eq(lists.orgId, orgId)));
 }
 
+export async function updateList(orgId: string, id: string, name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+  const [row] = await db
+    .update(lists)
+    .set({ name: trimmed })
+    .where(and(eq(lists.id, id), eq(lists.orgId, orgId)))
+    .returning();
+  return row ?? null;
+}
+
 export async function getList(orgId: string, id: string) {
   const [row] = await db.select().from(lists).where(and(eq(lists.id, id), eq(lists.orgId, orgId))).limit(1);
   return row ?? null;

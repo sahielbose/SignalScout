@@ -28,7 +28,7 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
       <div className="mx-auto max-w-3xl p-6">
         {dossier ? (
           <Card className="p-5">
-            <DossierPanel dossier={dossier} meta={ctx.meta ? { model: ctx.meta.model ?? undefined, cached: true } : undefined} />
+            <DossierPanel dossier={dossier} meta={ctx.meta ? { model: ctx.meta.model ?? undefined, cached: ctx.meta.cached } : undefined} />
           </Card>
         ) : (
           <Card className="flex flex-col items-center gap-3 p-12 text-center">

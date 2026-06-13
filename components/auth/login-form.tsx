@@ -14,6 +14,7 @@ export function LoginForm({ github, email, dev }: Props) {
   const [devEmail, setDevEmail] = useState('');
   const [pending, setPending] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   const start = (key: string, fn: () => Promise<unknown>) => async () => {
     setPending(key);
@@ -46,8 +47,14 @@ export function LoginForm({ github, email, dev }: Props) {
           onSubmit={(ev) => {
             ev.preventDefault();
             start('email', async () => {
-              await signIn('nodemailer', { email: magicEmail, redirectTo: '/feed' });
-              setSent(true);
+              setEmailError(null);
+              setSent(false);
+              const result = await signIn('nodemailer', { email: magicEmail, redirect: false });
+              if (result?.error) {
+                setEmailError('Could not send a sign-in link. Check the address and try again.');
+              } else {
+                setSent(true);
+              }
             })();
           }}
         >
@@ -67,6 +74,7 @@ export function LoginForm({ github, email, dev }: Props) {
             </Button>
           </div>
           {sent && <p className="text-xs text-primary">Check your inbox for a sign-in link.</p>}
+          {emailError && <p className="text-xs text-destructive">{emailError}</p>}
         </form>
       )}
 

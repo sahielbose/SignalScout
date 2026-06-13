@@ -18,6 +18,31 @@ export interface KeyRow {
   createdAt: Date;
 }
 
+function RevokeButton({ id }: { id: string }) {
+  const [pending, start] = useTransition();
+  const revoke = () => {
+    if (!confirm('Revoke this key? Any app using it will immediately lose access.')) return;
+    start(async () => {
+      const form = new FormData();
+      form.set('id', id);
+      await revokeKeyAction(form);
+      toast('Key revoked', 'success');
+    });
+  };
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      type="button"
+      disabled={pending}
+      onClick={revoke}
+      className="text-destructive transition-all duration-200 active:scale-[0.97]"
+    >
+      {pending ? <Loader2 className="size-3.5 animate-spin" /> : null} Revoke
+    </Button>
+  );
+}
+
 export function ApiKeys({ keys }: { keys: KeyRow[] }) {
   const [name, setName] = useState('');
   const [fresh, setFresh] = useState<string | null>(null);
@@ -77,14 +102,7 @@ export function ApiKeys({ keys }: { keys: KeyRow[] }) {
                   {k.prefix}…··· · {k.lastUsedAt ? `used ${relativeTime(k.lastUsedAt)}` : 'never used'}
                 </div>
               </div>
-              {!k.revokedAt && (
-                <form action={revokeKeyAction}>
-                  <input type="hidden" name="id" value={k.id} />
-                  <Button variant="ghost" size="sm" type="submit" className="text-destructive">
-                    Revoke
-                  </Button>
-                </form>
-              )}
+              {!k.revokedAt && <RevokeButton id={k.id} />}
             </div>
           ))
         )}

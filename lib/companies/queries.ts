@@ -1,10 +1,15 @@
-import { desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql, arrayOverlaps } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { companies, signals, people } from '@/lib/db/schema';
+import { getOrgIcpIds } from '@/lib/feed/queries';
 
-export async function listCompaniesWithCounts(limit = 100): Promise<
+export async function listCompaniesWithCounts(orgId: string, limit = 100): Promise<
   { id: string; name: string | null; domain: string | null; signals: number; lastAt: Date | null }[]
 > {
+  const orgIcpIds = await getOrgIcpIds(orgId);
+  // No ICPs yet -> nothing matched, so no companies to show.
+  if (orgIcpIds.length === 0) return [];
+
   return db
     .select({
       id: companies.id,
@@ -14,7 +19,11 @@ export async function listCompaniesWithCounts(limit = 100): Promise<
       lastAt: sql<Date | null>`max(coalesce(${signals.publishedAt}, ${signals.ingestedAt}))`,
     })
     .from(companies)
-    .leftJoin(signals, eq(signals.companyId, companies.id))
+    // Only join signals matched to one of the org's ICPs (tenancy scope).
+    .innerJoin(
+      signals,
+      and(eq(signals.companyId, companies.id), arrayOverlaps(signals.matchedIcpIds, orgIcpIds)),
+    )
     .groupBy(companies.id)
     .orderBy(desc(sql`count(${signals.id})`))
     .limit(limit);
@@ -47,9 +56,19 @@ export interface CompanyProfile {
   departments: { name: string; people: { id: string; name: string; title: string | null }[] }[];
 }
 
-export async function getCompanyProfile(companyId: string): Promise<CompanyProfile | null> {
+export async function getCompanyProfile(orgId: string, companyId: string): Promise<CompanyProfile | null> {
+  const orgIcpIds = await getOrgIcpIds(orgId);
+  // No ICPs yet -> no matched signals, so nothing to show for this org.
+  if (orgIcpIds.length === 0) return null;
+
   const [company] = await db.select().from(companies).where(eq(companies.id, companyId)).limit(1);
   if (!company) return null;
+
+  // Org scope: only signals matched to one of the org's ICPs.
+  const orgScope = and(
+    eq(signals.companyId, companyId),
+    arrayOverlaps(signals.matchedIcpIds, orgIcpIds),
+  );
 
   const timeline = await db
     .select({
@@ -63,14 +82,17 @@ export async function getCompanyProfile(companyId: string): Promise<CompanyProfi
       ingestedAt: signals.ingestedAt,
     })
     .from(signals)
-    .where(eq(signals.companyId, companyId))
+    .where(orgScope)
     .orderBy(desc(sql`coalesce(${signals.publishedAt}, ${signals.ingestedAt})`))
     .limit(100);
+
+  // No org-matched signals -> this company is not visible to this org.
+  if (timeline.length === 0) return null;
 
   const byTypeRows = await db
     .select({ type: signals.type, count: sql<number>`count(*)::int` })
     .from(signals)
-    .where(eq(signals.companyId, companyId))
+    .where(orgScope)
     .groupBy(signals.type);
   const byType = byTypeRows
     .filter((r): r is { type: string; count: number } => !!r.type)

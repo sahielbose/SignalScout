@@ -1,6 +1,6 @@
-import { and, arrayOverlaps, desc, eq, gte, sql } from 'drizzle-orm';
+import { and, arrayOverlaps, desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
-import { signals, companies, deliveries } from '@/lib/db/schema';
+import { signals, companies, deliveries, icps } from '@/lib/db/schema';
 import { getOrgIcpIds } from '@/lib/feed/queries';
 import { listWebhooks, sendWebhook, type WebhookRow } from '@/lib/webhooks/service';
 import { postSlack, formatSlackMessage } from './slack';
@@ -31,6 +31,7 @@ export async function dispatchSignalNotifications(orgId: string, minStrength = 0
       url: signals.sourceUrl,
       source: signals.source,
       company: companies.name,
+      matchedIcpIds: signals.matchedIcpIds,
     })
     .from(signals)
     .leftJoin(companies, eq(signals.companyId, companies.id))
@@ -48,16 +49,50 @@ export async function dispatchSignalNotifications(orgId: string, minStrength = 0
   const fresh = candidates.filter((c) => !delivered.has(c.id));
   if (fresh.length === 0) return { notified: 0, webhooks: 0, slack: false };
 
+  // Load the matched ICP definitions (org-scoped) so per-ICP notify prefs and
+  // notifyThreshold actually gate delivery. A signal can match several ICPs;
+  // we honor the most permissive (lowest threshold) of its matching ICPs.
+  const matchedIds = [...new Set(fresh.flatMap((c) => c.matchedIcpIds))];
+  const icpRows = matchedIds.length
+    ? await db
+        .select({ id: icps.id, definition: icps.definition })
+        .from(icps)
+        .where(and(eq(icps.orgId, orgId), inArray(icps.id, matchedIds)))
+    : [];
+  const icpById = new Map(icpRows.map((r) => [r.id, r.definition]));
+
+  // True when at least one of the signal's matching ICPs clears its threshold.
+  const passesThreshold = (c: (typeof fresh)[number]): boolean =>
+    c.matchedIcpIds.some((id) => {
+      const def = icpById.get(id);
+      return !!def && (c.strength ?? 0) >= def.notifyThreshold;
+    });
+
+  // True when at least one matching ICP wants Slack AND the signal clears that ICP's threshold.
+  const wantsSlack = (c: (typeof fresh)[number]): boolean =>
+    c.matchedIcpIds.some((id) => {
+      const def = icpById.get(id);
+      return !!def && def.notify.slack && (c.strength ?? 0) >= def.notifyThreshold;
+    });
+
+  // Webhooks stay per-org but now respect each ICP's notifyThreshold.
+  const webhookSignals = fresh.filter(passesThreshold);
   const hooks = (await listWebhooks(orgId)).filter((w) => w.active && w.events.includes('signal.created')) as WebhookRow[];
   let webhookCount = 0;
-  for (const hook of hooks) {
-    const ok = await sendWebhook(hook, 'signal.created', { signals: fresh });
-    if (ok) webhookCount++;
+  if (webhookSignals.length) {
+    for (const hook of hooks) {
+      const ok = await sendWebhook(hook, 'signal.created', { signals: webhookSignals });
+      if (ok) webhookCount++;
+    }
   }
 
+  // Slack: only signals whose matching ICP opted in to Slack and cleared its threshold.
+  // NOTE: destination is still the global SLACK_WEBHOOK_URL - a per-org Slack URL
+  // would need a new schema column, which is out of scope here.
+  const slackSignals = fresh.filter(wantsSlack);
   const slackUrl = env().SLACK_WEBHOOK_URL;
   let slackOk = false;
-  if (slackUrl) slackOk = await postSlack(slackUrl, formatSlackMessage(fresh));
+  if (slackUrl && slackSignals.length) slackOk = await postSlack(slackUrl, formatSlackMessage(slackSignals));
 
   // mark delivered (dedupe)
   if (fresh.length) {

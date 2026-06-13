@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { getFeed, type FeedFilters } from '@/lib/feed/queries';
 import { SignalTypeSchema, SourceSchema } from '@/lib/types';
@@ -15,7 +16,8 @@ export async function GET(req: Request) {
   const q = url.searchParams;
 
   const filters: FeedFilters = {};
-  if (q.get('icpId')) filters.icpId = q.get('icpId')!;
+  const icpId = z.string().uuid().safeParse(q.get('icpId') ?? undefined);
+  if (icpId.success) filters.icpId = icpId.data;
   const type = SignalTypeSchema.safeParse(q.get('type'));
   if (type.success) filters.type = type.data;
   const source = SourceSchema.safeParse(q.get('source'));

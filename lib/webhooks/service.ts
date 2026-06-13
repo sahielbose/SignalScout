@@ -21,6 +21,13 @@ export async function deleteWebhook(orgId: string, id: string) {
   await db.delete(webhooks).where(and(eq(webhooks.id, id), eq(webhooks.orgId, orgId)));
 }
 
+export async function setWebhookActive(orgId: string, id: string, active: boolean) {
+  await db
+    .update(webhooks)
+    .set({ active })
+    .where(and(eq(webhooks.id, id), eq(webhooks.orgId, orgId)));
+}
+
 export interface WebhookRow {
   id: string;
   orgId: string | null;

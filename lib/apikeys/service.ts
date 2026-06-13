@@ -41,8 +41,8 @@ export async function verifyApiKey(raw: string | null | undefined): Promise<Veri
     .where(eq(apiKeys.keyHash, keyHash))
     .limit(1);
   if (!row || row.revokedAt) return null;
-  // fire-and-forget last-used update
-  void db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, row.id));
+  // persist last-used so last_used_at reliably updates (was previously fire-and-forget)
+  await db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, row.id));
   return { orgId: row.orgId, keyId: row.id };
 }
 

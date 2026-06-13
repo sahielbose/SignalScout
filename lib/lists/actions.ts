@@ -5,6 +5,7 @@ import { requireOrgId } from '@/lib/auth/session';
 import {
   createList,
   deleteList,
+  updateList,
   removeMember,
   addCompanyToList,
   addPersonToList,
@@ -23,6 +24,15 @@ export async function deleteListAction(form: FormData) {
   const orgId = await requireOrgId();
   const id = String(form.get('id') ?? '');
   if (id) await deleteList(orgId, id);
+  revalidatePath('/lists');
+}
+
+export async function renameListAction(form: FormData) {
+  const orgId = await requireOrgId();
+  const id = String(form.get('id') ?? '');
+  const name = String(form.get('name') ?? '').trim();
+  if (id && name) await updateList(orgId, id, name);
+  revalidatePath(`/lists/${id}`);
   revalidatePath('/lists');
 }
 

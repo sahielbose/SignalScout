@@ -18,7 +18,7 @@ export default async function ListsPage() {
 
   return (
     <>
-      <PageHeader title="Lists" description="Group people and companies, bulk-research them, and export to CSV for your sequencer." />
+      <PageHeader title="Lists" description="Group people and companies, research them, and export to CSV for your sequencer." />
       <div className="mx-auto max-w-3xl space-y-5 p-6">
         <Card className="animate-fade-up p-4">
           <form action={createListAction} className="flex gap-2">

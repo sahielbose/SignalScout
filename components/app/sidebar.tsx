@@ -16,7 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { MarketingLogo } from '@/components/marketing/marketing-logo';
 
-const NAV = [
+export const NAV = [
   { href: '/feed', label: 'Feed', icon: Radar },
   { href: '/icps', label: 'ICPs', icon: Crosshair },
   { href: '/research', label: 'Research', icon: FileSearch },

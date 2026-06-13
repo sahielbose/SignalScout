@@ -29,12 +29,18 @@ export async function researchAction(input: {
 
   let name = (input.name ?? '').trim();
   const linkedinUrl = normalizeLinkedinUrl(input.linkedinUrl);
+  const githubLogin = input.githubLogin?.trim() || null;
   // allow a bare linkedin url with no name (derive a placeholder from the slug)
   if (!name && linkedinUrl) {
     const slug = linkedinUrl.split('/in/')[1]?.replace(/-/g, ' ') ?? '';
     name = slug.replace(/\b\w/g, (c) => c.toUpperCase());
   }
-  if (!name) return { ok: false, error: 'Enter a name (or a LinkedIn profile URL).' };
+  // allow a bare github handle with no name (derive a placeholder from the handle)
+  if (!name && githubLogin) {
+    const handle = githubLogin.replace(/^@/, '').replace(/[-_]/g, ' ');
+    name = handle.replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+  if (!name) return { ok: false, error: 'Enter a name (or a LinkedIn profile URL or GitHub handle).' };
 
   try {
     // BYO-key users bypass the shared free-tier quota (they pay their own way).
@@ -56,7 +62,7 @@ export async function researchAction(input: {
       company: input.company?.trim() || null,
       domain: input.domain?.trim() || null,
       linkedinUrl,
-      githubLogin: input.githubLogin?.trim() || null,
+      githubLogin,
       personId: input.personId || null,
       orgId,
       llmApiKey: byoKey,

@@ -35,8 +35,8 @@ export default async function IntegrationsPage() {
         <Card className="p-5">
           <h2 className="text-sm font-semibold">REST API</h2>
           <p className="mb-3 mt-1 text-xs text-muted-foreground">All endpoints are scoped to your org and accept a bearer key.</p>
-          <pre className="overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-xs leading-relaxed">
-{`# list ICP-matched signals
+          <CopyBlock
+            code={`# list ICP-matched signals
 curl -H "Authorization: Bearer \$SSK" \\
   "${base}/api/signals?type=funding&minStrength=0.6"
 
@@ -52,7 +52,7 @@ curl -X POST -H "Authorization: Bearer \$SSK" \\
 # export a list as CSV
 curl -H "Authorization: Bearer \$SSK" \\
   "${base}/api/lists/<list-id>/export.csv"`}
-          </pre>
+          />
         </Card>
         </Reveal>
 

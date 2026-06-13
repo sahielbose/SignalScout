@@ -10,8 +10,8 @@ export const metadata = { title: 'Companies - Signal Scout' };
 export const dynamic = 'force-dynamic';
 
 export default async function CompaniesPage() {
-  await requireOrgId();
-  const companies = (await listCompaniesWithCounts(100)).filter((c) => c.signals > 0);
+  const orgId = await requireOrgId();
+  const companies = (await listCompaniesWithCounts(orgId, 100)).filter((c) => c.signals > 0);
 
   return (
     <>

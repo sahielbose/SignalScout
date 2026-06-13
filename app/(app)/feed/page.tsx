@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { requireOrgId } from '@/lib/auth/session';
 import { getFeed, getFeedFacets, type FeedFilters } from '@/lib/feed/queries';
 import { listIcps } from '@/lib/icp/service';
@@ -16,9 +17,10 @@ function parseFilters(sp: SP): { filters: FeedFilters; query: string } {
   const filters: FeedFilters = {};
   const params = new URLSearchParams();
 
-  if (get('icpId')) {
-    filters.icpId = get('icpId');
-    params.set('icpId', get('icpId')!);
+  const icpId = z.string().uuid().safeParse(get('icpId'));
+  if (icpId.success) {
+    filters.icpId = icpId.data;
+    params.set('icpId', icpId.data);
   }
   const type = SignalTypeSchema.safeParse(get('type'));
   if (type.success) {
