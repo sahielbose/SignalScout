@@ -107,7 +107,7 @@ export const people = pgTable(
     fullName: text('full_name').notNull(),
     normalizedName: text('normalized_name'),
     linkedinUrl: text('linkedin_url').unique(), // strong key (nullable)
-    email: text('email'), // strong key (nullable) — uniqueness enforced via partial index below
+    email: text('email'), // strong key (nullable) - uniqueness enforced via partial index below
     companyId: uuid('company_id').references(() => companies.id, { onDelete: 'set null' }),
     title: text('title'),
     location: text('location'),
@@ -119,7 +119,7 @@ export const people = pgTable(
   },
   (t) => [
     index('people_name_trgm_idx').using('gin', t.normalizedName.op('gin_trgm_ops')),
-    // email is a strong key but nullable — enforce uniqueness only when present.
+    // email is a strong key but nullable - enforce uniqueness only when present.
     uniqueIndex('people_email_unique')
       .on(t.email)
       .where(sql`${t.email} is not null`),

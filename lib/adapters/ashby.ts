@@ -42,7 +42,7 @@ export function mapAshbyJob(board: string, j: AshbyJob): RawItem {
     text:
       `${prettyToken(board)} is hiring: ${j.title}` +
       (j.location ? ` (${j.location})` : '') +
-      (team ? ` — ${team}` : '') +
+      (team ? ` - ${team}` : '') +
       (body ? `\n${body}` : ''),
     hintType: gtm ? 'expansion' : 'hiring',
     meta: { board, jobId: id, team, location: j.location, gtm },

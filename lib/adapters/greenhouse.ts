@@ -21,7 +21,7 @@ interface GreenhouseResponse {
 const GTM_HINTS =
   /\b(sales|account executive|gtm|go-to-market|revenue|marketing|growth|business development|bdr|sdr|partnerships?|customer success)\b/i;
 
-/** Pure mapping — unit-tested with fixtures. */
+/** Pure mapping - unit-tested with fixtures. */
 export function mapGreenhouseJob(token: string, job: GreenhouseJob): RawItem {
   const dept = job.departments?.map((d) => d.name).filter(Boolean).join(', ');
   const loc = job.location?.name;
@@ -35,13 +35,13 @@ export function mapGreenhouseJob(token: string, job: GreenhouseJob): RawItem {
     actor: {
       kind: 'company',
       name: prettyToken(token),
-      // greenhouse board token is a slug, not a domain — left for entity resolution to suggest.
+      // greenhouse board token is a slug, not a domain - left for entity resolution to suggest.
     },
     title: job.title,
     text:
       `${prettyToken(token)} is hiring: ${job.title}` +
       (loc ? ` (${loc})` : '') +
-      (dept ? ` — ${dept}` : '') +
+      (dept ? ` - ${dept}` : '') +
       (body ? `\n${body}` : ''),
     hintType: gtm ? 'expansion' : 'hiring',
     meta: { token, jobId: job.id, location: loc, departments: dept, gtm },

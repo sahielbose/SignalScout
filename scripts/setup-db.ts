@@ -19,7 +19,7 @@ async function main() {
     const rows = await sql`SELECT extversion AS version FROM pg_extension WHERE extname = 'vector'`;
     console.log(`[setup-db] extensions ready (pgvector ${rows[0]?.version ?? '?'})`);
   } catch (err) {
-    console.error('[setup-db] failed — is Postgres running? (pnpm exec docker compose up -d db)');
+    console.error('[setup-db] failed - is Postgres running? (pnpm exec docker compose up -d db)');
     console.error(err);
     process.exit(1);
   } finally {

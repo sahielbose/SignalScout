@@ -100,7 +100,7 @@ function companyOverlap(a?: string | null, b?: string | null): boolean {
 /**
  * Find a GitHub user matching name (+ optional company/domain) and return a
  * verified profile with a matchConfidence. The CALLER must drop GitHub-derived
- * facts when confidence is low — this is what prevents attributing the wrong
+ * facts when confidence is low - this is what prevents attributing the wrong
  * "John Doe"'s repos.
  */
 export async function githubLookup(input: {

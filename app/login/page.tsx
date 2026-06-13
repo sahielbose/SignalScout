@@ -16,7 +16,7 @@ export default async function LoginPage() {
   const email = !!e.SMTP_URL;
 
   return (
-    <main className="marketing grid min-h-screen font-sans lg:grid-cols-2">
+    <main className="theme-warm grid min-h-screen font-sans lg:grid-cols-2">
       <section className="relative hidden flex-col justify-between overflow-hidden border-r border-border p-10 lg:flex">
         <div className="paper-dots pointer-events-none absolute inset-0 -z-10" />
         <Link href="/">

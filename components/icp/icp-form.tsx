@@ -55,7 +55,7 @@ export function IcpForm({ action, initial, submitLabel = 'Save ICP', onCancel }:
         <Field label="Company size" htmlFor="companySize">
           <Input id="companySize" name="companySize" defaultValue={d?.companySize ?? ''} placeholder="11-200" />
         </Field>
-        <Field label="Notify strength threshold" htmlFor="notifyThreshold" hint="0–1; notify above this">
+        <Field label="Notify strength threshold" htmlFor="notifyThreshold" hint="0-1; notify above this">
           <Input
             id="notifyThreshold"
             name="notifyThreshold"
@@ -70,7 +70,7 @@ export function IcpForm({ action, initial, submitLabel = 'Save ICP', onCancel }:
 
       <div>
         <Label>Signal types that matter</Label>
-        <p className="mb-2 text-xs text-muted-foreground">A hard filter — only these types match this ICP.</p>
+        <p className="mb-2 text-xs text-muted-foreground">A hard filter - only these types match this ICP.</p>
         <div className="flex flex-wrap gap-1.5">
           {SIGNAL_TYPES.map((t) => {
             const checked = d?.signalTypes?.includes(t) ?? false;

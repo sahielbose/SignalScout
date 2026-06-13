@@ -47,7 +47,7 @@ const WEB_CANDIDATES: SignalType[] = [
 ];
 
 /**
- * Source-aware type inference. A job posting is hiring/expansion — never
+ * Source-aware type inference. A job posting is hiring/expansion - never
  * "partnership" because the description happens to mention partners. Only
  * free-form web content is inferred purely from cues.
  */
@@ -58,7 +58,7 @@ export function inferType(input: MockClassifyInput): SignalType {
     case 'lever':
     case 'ashby':
       // Trust the adapter's title/department-based GTM hint; otherwise check the
-      // ROLE TITLE only — never the description boilerplate ("we're growing sales").
+      // ROLE TITLE only - never the description boilerplate ("we're growing sales").
       if (input.hint === 'expansion') return 'expansion';
       if (input.hint === 'hiring') return 'hiring';
       return GTM_CUES.test(input.title ?? '') ? 'expansion' : 'hiring';

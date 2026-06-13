@@ -14,7 +14,7 @@ export type GoldenItem = z.infer<typeof GoldenItemSchema>;
 
 export const EVAL_ICP: { id: string; name: string; definition: IcpDefinition } = {
   id: 'eval-icp',
-  name: 'Eval — broad B2B',
+  name: 'Eval - broad B2B',
   definition: {
     industries: ['fintech', 'developer tools', 'saas', 'ai', 'payments', 'infrastructure', 'data'],
     titles: ['account executive', 'sales', 'engineer', 'product', 'gtm', 'revenue'],

@@ -39,7 +39,7 @@ export async function classifyPendingSignals(opts: {
   let skipped = 0;
 
   for (const s of pending) {
-    // daily classify-budget ceiling (per org) — stop when exhausted
+    // daily classify-budget ceiling (per org) - stop when exhausted
     if (opts.orgId) {
       const q = await consumeQuota(opts.orgId, 'classify');
       if (!q.allowed) {

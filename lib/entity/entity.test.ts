@@ -69,7 +69,7 @@ describe('decideCompanyResolution', () => {
   });
 });
 
-describe('decidePersonResolution — the no-merge invariant', () => {
+describe('decidePersonResolution - the no-merge invariant', () => {
   it('matches on linkedin url (strong key)', () => {
     const cands: PersonCandidate[] = [
       { id: 'p1', linkedinUrl: 'https://www.linkedin.com/in/janedoe', email: null, normalizedName: 'jane doe', companyId: null },

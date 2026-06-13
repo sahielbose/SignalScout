@@ -15,7 +15,7 @@ export interface DispatchResult {
 /**
  * Notify on NEW high-strength, ICP-matched signals: signed webhooks + Slack.
  * Deduped via a 'signal_notify' delivery row per signal id, so each signal fires
- * exactly once. CRM push stays an explicit, gated action — never here.
+ * exactly once. CRM push stays an explicit, gated action - never here.
  */
 export async function dispatchSignalNotifications(orgId: string, minStrength = 0.7): Promise<DispatchResult> {
   const orgIcpIds = await getOrgIcpIds(orgId);

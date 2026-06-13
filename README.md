@@ -5,7 +5,7 @@
 Signal Scout watches **free, public sources** for buying signals about your ideal customers
 (funding filings, hiring surges, product launches, GitHub releases, web/changelog diffs, events),
 shows them in a **live ICP-filtered feed**, and generates **cited research dossiers** on the people
-behind them — delivered via a web dashboard, REST API, CSV export, and an **MCP server** you can
+behind them - delivered via a web dashboard, REST API, CSV export, and an **MCP server** you can
 wire into Claude or Cursor.
 
 Clean-room build, our own brand. Free to use (quota'd). Self-hostable end-to-end.
@@ -16,18 +16,18 @@ Clean-room build, our own brand. Free to use (quota'd). Self-hostable end-to-end
 
 The LLM calls are the easy 5%. The 95% that makes this usable is the trust layer, built in from hour one:
 
-- **Strong-key entity resolution** — companies by normalized domain, people by LinkedIn URL or email. People are **never** auto-merged on name alone. Per-source `content_hash` dedupe.
-- **Cited dossiers** — every factual field carries a `source_url` + `snippet`. Uncited facts are dropped; `confidence = cited/total`; `< 0.6` renders a low-confidence badge. A plausible-but-wrong dossier is worse than an empty one.
-- **Eval harness** — golden datasets score classification precision/recall and dossier citation coverage; the run **fails** under threshold.
-- **Cost & abuse control** — deep-research only ICP-matched people, dossier caching, per-org daily budget ceilings, every model call logged to `llm_runs` with tokens + cost.
-- **Legal & polite** — no LinkedIn/X scraping; free/public sources only; SEC `User-Agent` + rate cap; SSRF-guarded fetch; paid enrichment off by default.
+- **Strong-key entity resolution** - companies by normalized domain, people by LinkedIn URL or email. People are **never** auto-merged on name alone. Per-source `content_hash` dedupe.
+- **Cited dossiers** - every factual field carries a `source_url` + `snippet`. Uncited facts are dropped; `confidence = cited/total`; `< 0.6` renders a low-confidence badge. A plausible-but-wrong dossier is worse than an empty one.
+- **Eval harness** - golden datasets score classification precision/recall and dossier citation coverage; the run **fails** under threshold.
+- **Cost & abuse control** - deep-research only ICP-matched people, dossier caching, per-org daily budget ceilings, every model call logged to `llm_runs` with tokens + cost.
+- **Legal & polite** - no LinkedIn/X scraping; free/public sources only; SEC `User-Agent` + rate cap; SSRF-guarded fetch; paid enrichment off by default.
 
 ## Stack
 
 Next.js 15 (App Router) · TypeScript · Postgres 16 + pgvector · Drizzle ORM · pg-boss ·
 Vercel AI SDK (Anthropic default, Ollama swap) · Auth.js v5 · Tailwind + Radix · MCP SDK.
 
-The only optional closed pieces — the LLM API and hosted search — sit **behind interfaces**
+The only optional closed pieces - the LLM API and hosted search - sit **behind interfaces**
 with open self-host swaps (Ollama/vLLM; SearXNG + fetch). No closed dependency is load-bearing.
 
 ## Quick start
@@ -36,7 +36,7 @@ with open self-host swaps (Ollama/vLLM; SearXNG + fetch). No closed dependency i
 git clone https://github.com/sahielbose/Signal-Scout.git
 cd Signal-Scout
 pnpm install
-cp .env.example .env          # fill in what you have — it runs with zero keys (mocks kick in)
+cp .env.example .env          # fill in what you have - it runs with zero keys (mocks kick in)
 
 # start Postgres+pgvector (host port 5434).
 # If you have the docker compose plugin:
@@ -55,7 +55,7 @@ pnpm worker                   # separate process: schedulers + ingestion jobs
 
 > **Two processes.** pg-boss needs a long-running host, so the Next app (`pnpm dev`) and the
 > worker (`pnpm worker`) run separately. In prod: app on Vercel/Fly, worker as a separate
-> always-on service, Postgres on Neon/Supabase — or fully self-hosted via Docker.
+> always-on service, Postgres on Neon/Supabase - or fully self-hosted via Docker.
 
 ### Runs with zero keys
 
@@ -96,7 +96,7 @@ See [`BUILD_PLAN.md`](./BUILD_PLAN.md) for the full spec and [`PHASES.md`](./PHA
 
 ## Configuration
 
-Everything is read from the environment (see [`.env.example`](./.env.example)). Nothing is required to boot — missing keys degrade to safe fallbacks:
+Everything is read from the environment (see [`.env.example`](./.env.example)). Nothing is required to boot - missing keys degrade to safe fallbacks:
 
 | Variable | Purpose | If unset |
 |---|---|---|
@@ -114,10 +114,10 @@ Everything is read from the environment (see [`.env.example`](./.env.example)). 
 
 Two processes: the **web app** (serverless-friendly) and the **worker** (always-on, runs pg-boss).
 
-- **Render** — `render.yaml` provisions app + worker + Postgres in one blueprint. Point `DATABASE_URL` at a pgvector-capable Postgres (Render managed PG, Neon, or Supabase).
-- **Fly.io** — `fly.toml` deploys the app from `Dockerfile`; deploy the worker as a second Fly app from `Dockerfile.worker`.
-- **Vercel** — `vercel.json` for the app; run the worker elsewhere (Fly/Render/a VM) — never inside serverless.
-- **Self-host** — `docker build -t ss-app .` and `docker build -f Dockerfile.worker -t ss-worker .`, point both at a Postgres with `vector`/`pg_trgm`.
+- **Render** - `render.yaml` provisions app + worker + Postgres in one blueprint. Point `DATABASE_URL` at a pgvector-capable Postgres (Render managed PG, Neon, or Supabase).
+- **Fly.io** - `fly.toml` deploys the app from `Dockerfile`; deploy the worker as a second Fly app from `Dockerfile.worker`.
+- **Vercel** - `vercel.json` for the app; run the worker elsewhere (Fly/Render/a VM) - never inside serverless.
+- **Self-host** - `docker build -t ss-app .` and `docker build -f Dockerfile.worker -t ss-worker .`, point both at a Postgres with `vector`/`pg_trgm`.
 
 **Migrations on deploy:** `pnpm db:generate` writes SQL to `drizzle/`; `pnpm db:migrate` applies it (and creates extensions). The worker image runs `db:migrate` on boot. Health check: `GET /api/health` (checks DB).
 
@@ -130,6 +130,6 @@ consumer reports. No LinkedIn/X scraping; free/public sources only.
 
 ## Open-source posture
 
-The core is MIT/Apache/Postgres-licensed and self-hostable end-to-end. License: MIT. The only optional closed pieces —
-the LLM API and hosted search — sit behind interfaces with open self-host swaps (Ollama/vLLM; SearXNG + fetch). No
+The core is MIT/Apache/Postgres-licensed and self-hostable end-to-end. License: MIT. The only optional closed pieces -
+the LLM API and hosted search - sit behind interfaces with open self-host swaps (Ollama/vLLM; SearXNG + fetch). No
 closed dependency is load-bearing; no secret ever goes in code.

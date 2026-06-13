@@ -30,7 +30,7 @@
       "url": "https://github.com/vercel/next.js/releases/tag/v15.2.0",
       "actor": { "kind": "company", "name": "vercel", "githubLogin": "vercel" },
       "title": "next.js v15.2.0",
-      "text": "vercel/next.js released v15.2.0 — Turbopack improvements and a new caching API for the developer platform.",
+      "text": "vercel/next.js released v15.2.0 - Turbopack improvements and a new caching API for the developer platform.",
       "hintType": "github_release"
     },
     "expected": { "type": "github_release", "min_strength": 0.3 }
@@ -42,7 +42,7 @@
       "url": "https://github.com/vercel/ai/releases/tag/v4.0.0",
       "actor": { "kind": "company", "name": "vercel", "githubLogin": "vercel" },
       "title": "ai v4.0.0",
-      "text": "vercel/ai released v4.0.0 — Introducing a redesigned tool-calling API and provider registry for building agents.",
+      "text": "vercel/ai released v4.0.0 - Introducing a redesigned tool-calling API and provider registry for building agents.",
       "hintType": "github_release"
     },
     "expected": { "type": "github_release", "min_strength": 0.3 },

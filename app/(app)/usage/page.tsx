@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { ByoKey } from '@/components/usage/byo-key';
 import { cn } from '@/lib/utils';
 
-export const metadata = { title: 'Usage — Signal Scout' };
+export const metadata = { title: 'Usage - Signal Scout' };
 export const dynamic = 'force-dynamic';
 
 function Meter({ label, used, limit }: { label: string; used: number; limit: number }) {

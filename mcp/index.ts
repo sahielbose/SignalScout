@@ -1,6 +1,6 @@
 /**
- * Signal Scout — stdio MCP server for Claude Desktop / Cursor.
- * Auth: set SIGNALSCOUT_API_KEY (create one in /integrations) — the server scopes
+ * Signal Scout - stdio MCP server for Claude Desktop / Cursor.
+ * Auth: set SIGNALSCOUT_API_KEY (create one in /integrations) - the server scopes
  * every tool to that key's org.
  *
  *   SIGNALSCOUT_API_KEY=ssk_live_... pnpm mcp

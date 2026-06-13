@@ -16,7 +16,7 @@ export function ByoKey({ masked }: { masked: string | null }) {
     start(async () => {
       const r = await saveByoKeyAction(key);
       if (r.ok) {
-        toast('API key saved — your research now runs on your key', 'success');
+        toast('API key saved - your research now runs on your key', 'success');
         setSaved(true);
         setKey('');
       } else toast(r.error ?? 'Could not save key', 'error');
@@ -38,7 +38,7 @@ export function ByoKey({ masked }: { masked: string | null }) {
             <Check className="size-4" /> Using your own key {masked ? <code className="text-xs text-muted-foreground">{masked}</code> : null}
           </span>
         ) : (
-          <span className="text-muted-foreground">No personal key — using the shared free tier.</span>
+          <span className="text-muted-foreground">No personal key - using the shared free tier.</span>
         )}
       </div>
       <div className="flex gap-2">
@@ -59,7 +59,7 @@ export function ByoKey({ masked }: { masked: string | null }) {
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        Stored against your account and used only for your dossiers — it bypasses the shared daily quota. Never sent to the browser.
+        Stored against your account and used only for your dossiers - it bypasses the shared daily quota. Never sent to the browser.
       </p>
     </div>
   );

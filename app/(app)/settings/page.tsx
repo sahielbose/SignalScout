@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/app/page-header';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-export const metadata = { title: 'Settings — Signal Scout' };
+export const metadata = { title: 'Settings - Signal Scout' };
 export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
@@ -27,7 +27,7 @@ export default async function SettingsPage() {
           <dl className="mt-3 space-y-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Name</dt>
-              <dd className="font-medium">{org?.name ?? '—'}</dd>
+              <dd className="font-medium">{org?.name ?? '-'}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Plan</dt>

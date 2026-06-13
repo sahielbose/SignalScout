@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="marketing min-h-screen w-full font-sans">
+    <div className="theme-warm min-h-screen w-full font-sans">
       <MarketingNav />
       {children}
       <Footer />

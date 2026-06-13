@@ -2,7 +2,7 @@ import { env } from '@/lib/env';
 import { log } from '@/lib/logger';
 
 /**
- * Optional error tracking. Dependency-free by default — when SENTRY_DSN is set,
+ * Optional error tracking. Dependency-free by default - when SENTRY_DSN is set,
  * errors POST to Sentry's store endpoint. For richer tracing, install
  * @sentry/nextjs and forward here (documented opt-in; off by default).
  */

@@ -130,7 +130,7 @@ export class HttpError extends Error {
     public url: string,
     public detail: string,
   ) {
-    super(`HTTP ${status} for ${url}${detail ? ` — ${detail}` : ''}`);
+    super(`HTTP ${status} for ${url}${detail ? ` - ${detail}` : ''}`);
     this.name = 'HttpError';
   }
 }

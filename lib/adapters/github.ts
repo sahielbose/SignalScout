@@ -21,7 +21,7 @@ export function parseRepoKey(key: string): { owner: string; repo: string } {
   return { owner, repo };
 }
 
-/** Pure mapping — unit-tested with fixtures. */
+/** Pure mapping - unit-tested with fixtures. */
 export function mapGithubRelease(owner: string, repo: string, r: GithubRelease): RawItem {
   const title = r.name?.trim() || r.tag_name;
   const body = (r.body ?? '').slice(0, 1500);
@@ -37,7 +37,7 @@ export function mapGithubRelease(owner: string, repo: string, r: GithubRelease):
     },
     title: `${repo} ${r.tag_name}`,
     text:
-      `${owner}/${repo} released ${r.tag_name}${title && title !== r.tag_name ? ` — ${title}` : ''}.` +
+      `${owner}/${repo} released ${r.tag_name}${title && title !== r.tag_name ? ` - ${title}` : ''}.` +
       (r.prerelease ? ' (prerelease)' : '') +
       (body ? `\n${body}` : ''),
     hintType: 'github_release',

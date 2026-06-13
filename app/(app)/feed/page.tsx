@@ -6,7 +6,7 @@ import { FilterBar } from '@/components/feed/filter-bar';
 import { FeedList } from '@/components/feed/feed-list';
 import { OnboardingCard } from '@/components/onboarding/onboarding-card';
 
-export const metadata = { title: 'Feed — Signal Scout' };
+export const metadata = { title: 'Feed - Signal Scout' };
 export const dynamic = 'force-dynamic';
 
 type SP = Record<string, string | string[] | undefined>;

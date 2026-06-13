@@ -3,7 +3,7 @@ import type { IcpDefinition } from '@/lib/types';
 
 /** A starter ICP used by the seed script + one-click onboarding. */
 export const SAMPLE_ICP: { name: string; definition: IcpDefinition } = {
-  name: 'Fintech & developer-tools companies — funding, GTM expansion, launches',
+  name: 'Fintech & developer-tools companies - funding, GTM expansion, launches',
   definition: {
     industries: ['fintech', 'developer tools', 'payments', 'saas', 'infrastructure', 'ai'],
     titles: ['account executive', 'head of sales', 'gtm', 'revenue', 'sales lead', 'growth'],

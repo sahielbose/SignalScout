@@ -14,7 +14,7 @@ export function formatSlackMessage(signals: SlackSignal[], heading = 'New buying
     const type = s.type ? (SIGNAL_TYPE_LABELS[s.type as SignalType] ?? s.type) : 'Signal';
     const src = SOURCE_LABELS[s.source as SourceName] ?? s.source;
     const pct = Math.round((s.strength ?? 0) * 100);
-    const title = s.title ? ` — ${s.title}` : '';
+    const title = s.title ? ` - ${s.title}` : '';
     const link = s.url ? `<${s.url}|${s.company ?? 'view'}>` : (s.company ?? 'Unknown');
     return `• *${type}* (${pct}%) · ${link}${title} _[${src}]_`;
   });

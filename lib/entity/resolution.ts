@@ -28,7 +28,7 @@ export type CompanyDecision =
 
 /**
  * Company strong key = registrable domain. With no domain we fall back to an
- * EXACT normalized-name match (safe dedupe for slug/filer-name sources) — never
+ * EXACT normalized-name match (safe dedupe for slug/filer-name sources) - never
  * a fuzzy merge. Fuzzy name overlap is only ever surfaced as a suggestion.
  */
 export function decideCompanyResolution(
@@ -130,7 +130,7 @@ export async function resolveCompany(input: CompanyInput): Promise<string | null
     return decision.id;
   }
 
-  // create — guard the domain unique constraint with onConflict
+  // create - guard the domain unique constraint with onConflict
   const [row] = await db
     .insert(companies)
     .values({ domain: domain ?? null, name: input.name ?? null, normalizedName })
@@ -212,7 +212,7 @@ export async function resolvePerson(input: PersonResolveInput): Promise<string |
 
   const newId = row?.id ?? null;
   if (newId && decision.suggestion) {
-    // record a non-destructive match SUGGESTION for review — we did NOT merge.
+    // record a non-destructive match SUGGESTION for review - we did NOT merge.
     await db.insert(auditLogs).values({
       orgId: null,
       actor: 'entity-resolver',
@@ -223,7 +223,7 @@ export async function resolvePerson(input: PersonResolveInput): Promise<string |
         candidateId: decision.suggestion.id,
         reason: decision.suggestion.reason,
         confidence: decision.confidence,
-        note: 'kept separate — no strong key; name match is a suggestion only',
+        note: 'kept separate - no strong key; name match is a suggestion only',
       },
     });
   }

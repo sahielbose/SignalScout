@@ -23,9 +23,9 @@ export function OnboardingCard({ hasIcp }: { hasIcp: boolean }) {
     });
 
   const steps = [
-    { icon: Crosshair, title: 'Define who you sell to', body: 'An ICP — industries, titles, keywords, and which signal types matter.' },
+    { icon: Crosshair, title: 'Define who you sell to', body: 'An ICP - industries, titles, keywords, and which signal types matter.' },
     { icon: Radar, title: 'Watch the feed fill', body: 'Public signals from free sources get classified and matched to your ICP.' },
-    { icon: FileSearch, title: 'Research a person', body: 'Generate a cited dossier on anyone — every fact carries a source.' },
+    { icon: FileSearch, title: 'Research a person', body: 'Generate a cited dossier on anyone - every fact carries a source.' },
   ];
 
   return (
@@ -37,7 +37,7 @@ export function OnboardingCard({ hasIcp }: { hasIcp: boolean }) {
         <h2 className="mt-4 text-xl font-semibold tracking-tight">Let&apos;s populate your feed</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {hasIcp
-            ? 'Your ICP is set — pull in some live signals to see it in action.'
+            ? 'Your ICP is set - pull in some live signals to see it in action.'
             : 'Two ways to start: seed a sample setup in one click, or define your own ICP.'}
         </p>
 

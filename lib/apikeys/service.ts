@@ -10,7 +10,7 @@ export interface CreatedKey {
   id: string;
   name: string;
   prefix: string;
-  /** full plaintext key — shown exactly once, never stored */
+  /** full plaintext key - shown exactly once, never stored */
   key: string;
 }
 

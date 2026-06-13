@@ -14,7 +14,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Wordmark } from '@/components/brand/logo';
+import { MarketingLogo } from '@/components/marketing/marketing-logo';
 
 const NAV = [
   { href: '/feed', label: 'Feed', icon: Radar },
@@ -34,7 +34,7 @@ export function Sidebar() {
     <aside className="hidden w-56 shrink-0 flex-col border-r bg-card/40 md:flex">
       <div className="flex h-14 items-center border-b px-4">
         <Link href="/feed">
-          <Wordmark className="text-[0.95rem]" />
+          <MarketingLogo />
         </Link>
       </div>
       <nav className="flex-1 space-y-0.5 p-2">

@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/app/page-header';
 import { Card } from '@/components/ui/card';
 import { relativeTime } from '@/lib/utils';
 
-export const metadata = { title: 'Companies — Signal Scout' };
+export const metadata = { title: 'Companies - Signal Scout' };
 export const dynamic = 'force-dynamic';
 
 export default async function CompaniesPage() {
@@ -15,7 +15,7 @@ export default async function CompaniesPage() {
 
   return (
     <>
-      <PageHeader title="Companies" description="Every company with tracked public signals — open one for its timeline and org view." />
+      <PageHeader title="Companies" description="Every company with tracked public signals - open one for its timeline and org view." />
       <div className="mx-auto max-w-3xl p-6">
         {companies.length === 0 ? (
           <Card className="p-10 text-center text-sm text-muted-foreground">No companies with signals yet. Run the worker to ingest sources.</Card>

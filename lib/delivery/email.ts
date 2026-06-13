@@ -35,7 +35,7 @@ function esc(s: string): string {
   return s.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]!);
 }
 
-/** Render a digest email. Pure — used by the worker job and tested directly. */
+/** Render a digest email. Pure - used by the worker job and tested directly. */
 export function renderDigest(orgName: string, signals: DigestSignal[], appUrl: string): { subject: string; html: string; text: string } {
   const count = signals.length;
   const subject = count ? `${count} new buying signal${count === 1 ? '' : 's'} for ${orgName}` : `No new signals for ${orgName}`;
@@ -65,13 +65,13 @@ export function renderDigest(orgName: string, signals: DigestSignal[], appUrl: s
       <div style="font-size:18px;font-weight:700;color:#0f766e">Signal Scout</div>
       <h1 style="font-size:20px;color:#111827;margin:12px 0">${count ? `${count} new buying signal${count === 1 ? '' : 's'}` : 'No new signals today'}</h1>
       <p style="color:#6b7280;font-size:13px;margin:0 0 16px">Matched to ${esc(orgName)}'s ICPs.</p>
-      <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">${rows || '<tr><td style="padding:16px;color:#6b7280">Nothing new — check back tomorrow.</td></tr>'}</table>
+      <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">${rows || '<tr><td style="padding:16px;color:#6b7280">Nothing new - check back tomorrow.</td></tr>'}</table>
       <a href="${appUrl}/feed" style="display:inline-block;margin-top:16px;background:#0f766e;color:#fff;text-decoration:none;font-size:13px;font-weight:600;padding:8px 16px;border-radius:6px">Open the feed</a>
       <p style="color:#9ca3af;font-size:11px;margin-top:24px">You're receiving this because email digests are on for an ICP. Manage in settings.</p>
     </div>
   </body></html>`;
 
-  const text = `Signal Scout — ${subject}\n\n` + signals.slice(0, 25).map((s) => `- [${s.type}] ${s.company ?? '?'} (${Math.round((s.strength ?? 0) * 100)}%) ${s.title ?? ''} ${s.url ?? ''}`).join('\n');
+  const text = `Signal Scout - ${subject}\n\n` + signals.slice(0, 25).map((s) => `- [${s.type}] ${s.company ?? '?'} (${Math.round((s.strength ?? 0) * 100)}%) ${s.title ?? ''} ${s.url ?? ''}`).join('\n');
 
   return { subject, html, text };
 }

@@ -1,7 +1,7 @@
 /**
  * Cross-tenant isolation check (Phase 11). Creates two orgs with data and proves
  * org B cannot read org A's ICPs, lists, list members, dossiers, feed, or key.
- * Enforced-scoping model (every query takes orgId) — this is the fail-closed test.
+ * Enforced-scoping model (every query takes orgId) - this is the fail-closed test.
  * Self-cleaning.
  */
 import 'dotenv/config';

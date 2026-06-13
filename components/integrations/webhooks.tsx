@@ -24,7 +24,7 @@ function TestButton({ id }: { id: string }) {
       onClick={() =>
         start(async () => {
           const r = await testWebhookAction(id);
-          toast(r.ok ? 'Test event delivered (HTTP 2xx)' : 'Delivery failed — check the URL', r.ok ? 'success' : 'error');
+          toast(r.ok ? 'Test event delivered (HTTP 2xx)' : 'Delivery failed - check the URL', r.ok ? 'success' : 'error');
         })
       }
     >

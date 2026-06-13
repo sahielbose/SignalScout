@@ -37,7 +37,7 @@ export async function rateLimit(key: string, opts: RateLimitOpts): Promise<RateL
       return { allowed, remaining: Math.floor(newTokens) };
     });
   } catch {
-    // fail open on infra errors — never hard-break the app on the limiter
+    // fail open on infra errors - never hard-break the app on the limiter
     return { allowed: true, remaining: opts.capacity };
   }
 }

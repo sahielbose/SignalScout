@@ -1,5 +1,5 @@
 /**
- * Signal Scout worker — a SEPARATE process from the web app (pg-boss needs a
+ * Signal Scout worker - a SEPARATE process from the web app (pg-boss needs a
  * long-running host). Schedules ingestion → classification → notifications, and a
  * daily email digest.
  *   pnpm worker
@@ -79,7 +79,7 @@ async function main() {
   // run an ingest once on startup
   await boss.send('ingest', {});
 
-  log('worker started — ingest every 30m, digest daily 13:00 UTC');
+  log('worker started - ingest every 30m, digest daily 13:00 UTC');
 }
 
 main().catch((err) => {

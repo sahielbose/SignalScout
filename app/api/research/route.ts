@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   // per-IP burst limit (fail-open on infra errors)
   const rl = await rateLimit(`research:ip:${clientIp(req)}`, { capacity: 10, refillPerSec: 0.2 });
   if (!rl.allowed) {
-    return NextResponse.json({ error: 'rate_limited', detail: 'Too many requests — slow down.' }, { status: 429 });
+    return NextResponse.json({ error: 'rate_limited', detail: 'Too many requests - slow down.' }, { status: 429 });
   }
 
   const byoKey = req.headers.get('x-llm-key');

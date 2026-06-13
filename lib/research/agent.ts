@@ -25,7 +25,7 @@ export interface DossierInput {
   title?: string | null;
   personId?: string | null;
   orgId?: string | null;
-  /** A user's bring-your-own Anthropic key — routes LLM spend to them. */
+  /** A user's bring-your-own Anthropic key - routes LLM spend to them. */
   llmApiKey?: string | null;
   force?: boolean;
 }
@@ -72,7 +72,7 @@ async function getCachedDossier(personId: string): Promise<GuardedDossier | null
 function focusFromRepos(gh: GithubProfile): string {
   const langs = [...new Set(gh.topRepos.map((r) => r.language).filter(Boolean))].slice(0, 3);
   const top = gh.topRepos[0];
-  return langs.length ? `${langs.join(', ')}${top?.name ? ` — e.g. ${top.name}` : ''}` : (top?.name ?? 'software');
+  return langs.length ? `${langs.join(', ')}${top?.name ? ` - e.g. ${top.name}` : ''}` : (top?.name ?? 'software');
 }
 
 function tagsFromGithub(gh: GithubProfile): string[] {
@@ -87,7 +87,7 @@ function buildMockDossier(input: DossierInput, gh: GithubProfile | null): Dossie
 
   if (trusted && gh) {
     const src = gh.profileUrl;
-    const snip = (gh.bio || `${gh.name ?? gh.login} — GitHub profile`).slice(0, 200);
+    const snip = (gh.bio || `${gh.name ?? gh.login} - GitHub profile`).slice(0, 200);
     structured.github_contributions = {
       value: `${gh.publicRepos} public repositories · ${gh.followers} followers`,
       source_url: src,
@@ -107,7 +107,7 @@ function buildMockDossier(input: DossierInput, gh: GithubProfile | null): Dossie
   const focusVal = structured.focus?.value;
   const summary = trusted && gh
     ? `${input.name}${company ? ` at ${company}` : ''} has a public technical footprint on GitHub (${gh.publicRepos} repos, ${gh.followers} followers)${focusVal ? `, working around ${focusVal}` : ''}. Profile: ${gh.profileUrl}.`
-    : `Limited public technical footprint found for ${input.name}${company ? ` at ${company}` : ''}. This dossier is low-confidence — connect a search provider or supply a GitHub handle / LinkedIn URL for more.`;
+    : `Limited public technical footprint found for ${input.name}${company ? ` at ${company}` : ''}. This dossier is low-confidence - connect a search provider or supply a GitHub handle / LinkedIn URL for more.`;
 
   return {
     identity: {
@@ -120,9 +120,9 @@ function buildMockDossier(input: DossierInput, gh: GithubProfile | null): Dossie
     structured,
     why_they_care: focusVal
       ? `They work hands-on with ${focusVal}, so messaging that speaks to that workflow will land.`
-      : `Identify their current focus before reaching out — this profile is thin on public signal.`,
+      : `Identify their current focus before reaching out - this profile is thin on public signal.`,
     suggested_opener: focusVal
-      ? `Saw your work around ${focusVal} — curious how you're thinking about it lately.`
+      ? `Saw your work around ${focusVal} - curious how you're thinking about it lately.`
       : `Would love to learn what you're focused on right now.`,
     confidence: 0,
   };
@@ -177,7 +177,7 @@ async function buildLlmDossier(
       ? `GITHUB PROFILE (matchConfidence ${ghBlock.matchConfidence.toFixed(2)}) ${ghBlock.profileUrl}\n` +
         `name=${ghBlock.name} company=${ghBlock.company} location=${ghBlock.location} repos=${ghBlock.publicRepos} followers=${ghBlock.followers}\n` +
         `bio: ${ghBlock.bio ?? ''}\n` +
-        `top repos: ${ghBlock.topRepos.map((r) => `${r.name} (${r.language ?? '?'}) ${r.url} — ${r.description ?? ''}`).join(' | ')}\n` +
+        `top repos: ${ghBlock.topRepos.map((r) => `${r.name} (${r.language ?? '?'}) ${r.url} - ${r.description ?? ''}`).join(' | ')}\n` +
         `starred: ${ghBlock.starredRepos.map((r) => `${r.name} ${r.url}`).join(' | ')}`
       : `No confident GitHub match.`,
     ...evidence.map((e) => `SOURCE ${e.url}\nTITLE ${e.title}\n${e.content}`),
@@ -283,7 +283,7 @@ export async function generateDossier(input: DossierInput): Promise<DossierResul
     if (page.ok && page.text.length > 80) evidence.push({ url: page.url, title: page.title, content: page.text.slice(0, 1500) });
   }
 
-  // 3) synthesize — use a real model (env or BYO key) when available, else mock
+  // 3) synthesize - use a real model (env or BYO key) when available, else mock
   let raw: Dossier;
   let model = 'mock';
   let costUsd = 0;

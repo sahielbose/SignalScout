@@ -20,7 +20,7 @@ async function main() {
     process.exit(2);
   }
   const adapter = getAdapter(source);
-  console.log(`\n▶ ${adapter.label} — key="${key}"\n`);
+  console.log(`\n▶ ${adapter.label} - key="${key}"\n`);
   const t0 = Date.now();
   const { items, cursor } = await adapter.fetch({ key, limit: 5 });
   const ms = Date.now() - t0;
@@ -35,10 +35,10 @@ async function main() {
     console.log(`    ${item.url}`);
     console.log(`    ${(item.text || '').replace(/\s+/g, ' ').slice(0, 120)}…\n`);
   }
-  console.log(`fetched ${items.length} item(s) in ${ms}ms — ${valid}/${Math.min(items.length, 5)} schema-valid`);
+  console.log(`fetched ${items.length} item(s) in ${ms}ms - ${valid}/${Math.min(items.length, 5)} schema-valid`);
   console.log('cursor:', JSON.stringify(cursor));
   if (items.length === 0) {
-    console.warn('\n⚠ zero items — endpoint reachable but empty (or all filtered by cursor).');
+    console.warn('\n⚠ zero items - endpoint reachable but empty (or all filtered by cursor).');
   }
   if (items.length > 0 && valid === 0) process.exit(1);
 }

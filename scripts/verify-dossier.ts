@@ -22,7 +22,7 @@ async function main() {
   console.log('\n▶ deep-research agent verification\n');
 
   // 1) positive: real person with explicit GitHub handle
-  console.log('Case A — Guillermo Rauch (Vercel), github rauchg:');
+  console.log('Case A - Guillermo Rauch (Vercel), github rauchg:');
   const a = await generateDossier({ name: 'Guillermo Rauch', company: 'Vercel', githubLogin: 'rauchg', force: true });
   if (a.personId) created.push(a.personId);
   const facts = a.dossier.sources;
@@ -35,7 +35,7 @@ async function main() {
   check('attributed github facts point at github.com', facts.filter((s) => /github\.com/.test(s.url)).every((s) => s.url.includes('github.com')));
 
   // 2) common-name guard: bare common name, no company/handle
-  console.log('\nCase B — bare common name "Michael Chen" (no company, no handle):');
+  console.log('\nCase B - bare common name "Michael Chen" (no company, no handle):');
   const b = await generateDossier({ name: 'Michael Chen', force: true });
   if (b.personId) created.push(b.personId);
   console.log(`  confidence=${b.dossier.confidence} lowConfidence=${b.dossier.lowConfidence} ghFacts=${b.dossier.sources.filter((s) => /github\.com/.test(s.url)).length}`);

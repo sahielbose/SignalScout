@@ -60,7 +60,7 @@ export function ResearchForm({ defaults }: { defaults?: { name?: string; company
               <div className="space-y-1.5">
                 <Label htmlFor="li">LinkedIn URL</Label>
                 <Input id="li" value={linkedinUrl} onChange={(e) => setLinkedin(e.target.value)} placeholder="linkedin.com/in/…" />
-                <p className="text-[0.7rem] text-muted-foreground">Used as an identity key only — never scraped.</p>
+                <p className="text-[0.7rem] text-muted-foreground">Used as an identity key only - never scraped.</p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="gh">GitHub handle</Label>

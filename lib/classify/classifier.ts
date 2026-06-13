@@ -88,7 +88,7 @@ export async function classify(input: ClassifyInput): Promise<ClassifyResult> {
     });
     return finalize(object, input, id);
   } catch (err) {
-    // On any LLM/parse failure, fall back to the deterministic mock — never drop the item.
+    // On any LLM/parse failure, fall back to the deterministic mock - never drop the item.
     const raw = mockClassify(input);
     await logLlmRun({
       orgId: input.orgId,

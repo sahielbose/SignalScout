@@ -59,7 +59,7 @@ export function isBlockedAddress(address: string): boolean {
     if (a === '::1' || a === '::') return true; // loopback / unspecified
     if (a.startsWith('fe80') || a.startsWith('fc') || a.startsWith('fd')) return true; // link-local / ULA
     if (a.startsWith('::ffff:')) {
-      // IPv4-mapped — check the embedded v4
+      // IPv4-mapped - check the embedded v4
       const v4 = a.slice('::ffff:'.length);
       if (isIP(v4) === 4) return isBlockedAddress(v4);
     }

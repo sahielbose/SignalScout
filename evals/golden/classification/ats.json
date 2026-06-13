@@ -6,7 +6,7 @@
       "url": "https://boards.greenhouse.io/gitlab/jobs/101",
       "actor": { "kind": "company", "name": "Gitlab" },
       "title": "Strategic Account Executive, Digital Natives - India",
-      "text": "Gitlab is hiring: Strategic Account Executive, Digital Natives - India (Remote) — Sales. Own a book of strategic accounts and drive new revenue across the region.",
+      "text": "Gitlab is hiring: Strategic Account Executive, Digital Natives - India (Remote) - Sales. Own a book of strategic accounts and drive new revenue across the region.",
       "hintType": "expansion"
     },
     "expected": { "type": "expansion", "min_strength": 0.55 },
@@ -19,7 +19,7 @@
       "url": "https://stripe.com/jobs/102",
       "actor": { "kind": "company", "name": "Stripe" },
       "title": "Manager, Startups Account Executives - Existing Business",
-      "text": "Stripe is hiring: Manager, Startups Account Executives - Existing Business (New York) — GEO Sales. Lead a team of AEs selling payments to startups.",
+      "text": "Stripe is hiring: Manager, Startups Account Executives - Existing Business (New York) - GEO Sales. Lead a team of AEs selling payments to startups.",
       "hintType": "expansion"
     },
     "expected": { "type": "expansion", "min_strength": 0.55 }
@@ -31,7 +31,7 @@
       "url": "https://boards.greenhouse.io/gitlab/jobs/103",
       "actor": { "kind": "company", "name": "Gitlab" },
       "title": "Customer Success Manager, Japan",
-      "text": "Gitlab is hiring: Customer Success Manager, Japan — Customer Success. Drive adoption and expansion across enterprise accounts.",
+      "text": "Gitlab is hiring: Customer Success Manager, Japan - Customer Success. Drive adoption and expansion across enterprise accounts.",
       "hintType": "expansion"
     },
     "expected": { "type": "expansion", "min_strength": 0.3 }
@@ -43,7 +43,7 @@
       "url": "https://careers.airbnb.com/positions/104",
       "actor": { "kind": "company", "name": "Airbnb" },
       "title": "Senior Business Development Manager, EMEA",
-      "text": "Airbnb is hiring: Senior Business Development Manager, EMEA — Partnerships. Build commercial relationships and expand the EMEA market.",
+      "text": "Airbnb is hiring: Senior Business Development Manager, EMEA - Partnerships. Build commercial relationships and expand the EMEA market.",
       "hintType": "expansion"
     },
     "expected": { "type": "expansion", "min_strength": 0.5 }
@@ -55,7 +55,7 @@
       "url": "https://jobs.ashbyhq.com/ramp/105",
       "actor": { "kind": "company", "name": "Ramp" },
       "title": "Partner Development Representative | Financial Institutions",
-      "text": "Ramp is hiring: Partner Development Representative | Financial Institutions (New York) — Sales. Source and develop banking partnerships.",
+      "text": "Ramp is hiring: Partner Development Representative | Financial Institutions (New York) - Sales. Source and develop banking partnerships.",
       "hintType": "expansion"
     },
     "expected": { "type": "expansion", "min_strength": 0.5 }
@@ -67,7 +67,7 @@
       "url": "https://stripe.com/jobs/106",
       "actor": { "kind": "company", "name": "Stripe" },
       "title": "Staff Frontend Engineer, Stripe Dashboard",
-      "text": "Stripe is hiring: Staff Frontend Engineer, Stripe Dashboard (Seattle) — Engineering. Build the dashboard our users rely on. We're growing our sales and revenue teams too.",
+      "text": "Stripe is hiring: Staff Frontend Engineer, Stripe Dashboard (Seattle) - Engineering. Build the dashboard our users rely on. We're growing our sales and revenue teams too.",
       "hintType": "hiring"
     },
     "expected": { "type": "hiring", "min_strength": 0.15 },
@@ -80,7 +80,7 @@
       "url": "https://jobs.ashbyhq.com/ramp/107",
       "actor": { "kind": "company", "name": "Ramp" },
       "title": "Mobile Engineer, Android",
-      "text": "Ramp is hiring: Mobile Engineer, Android (New York) — Engineering. Build our Android app.",
+      "text": "Ramp is hiring: Mobile Engineer, Android (New York) - Engineering. Build our Android app.",
       "hintType": "hiring"
     },
     "expected": { "type": "hiring", "min_strength": 0.15 }
@@ -92,7 +92,7 @@
       "url": "https://stripe.com/jobs/108",
       "actor": { "kind": "company", "name": "Stripe" },
       "title": "Security Engineer, Bridge",
-      "text": "Stripe is hiring: Security Engineer, Bridge (SF) — Engineering. Secure our stablecoin infrastructure.",
+      "text": "Stripe is hiring: Security Engineer, Bridge (SF) - Engineering. Secure our stablecoin infrastructure.",
       "hintType": "hiring"
     },
     "expected": { "type": "hiring", "min_strength": 0.15 }
@@ -104,7 +104,7 @@
       "url": "https://jobs.ashbyhq.com/notion/109",
       "actor": { "kind": "company", "name": "Notion" },
       "title": "Product Designer",
-      "text": "Notion is hiring: Product Designer (San Francisco) — Design. Shape the future of our product surface.",
+      "text": "Notion is hiring: Product Designer (San Francisco) - Design. Shape the future of our product surface.",
       "hintType": "hiring"
     },
     "expected": { "type": "hiring", "min_strength": 0.15 }
@@ -116,7 +116,7 @@
       "url": "https://jobs.lever.co/spotify/110",
       "actor": { "kind": "company", "name": "Spotify" },
       "title": "Manager, Technical Advertising Solutions - Americas",
-      "text": "Spotify is hiring: Manager, Technical Advertising Solutions - Americas — Sales. Lead pre-sales solutions for advertising revenue.",
+      "text": "Spotify is hiring: Manager, Technical Advertising Solutions - Americas - Sales. Lead pre-sales solutions for advertising revenue.",
       "hintType": "expansion"
     },
     "expected": { "type": "expansion", "min_strength": 0.5 }

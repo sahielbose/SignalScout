@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { CostChart } from '@/components/evals/cost-chart';
 import { cn } from '@/lib/utils';
 
-export const metadata = { title: 'Metrics — Signal Scout' };
+export const metadata = { title: 'Metrics - Signal Scout' };
 export const dynamic = 'force-dynamic';
 
 export default async function EvalsPage() {
@@ -18,7 +18,7 @@ export default async function EvalsPage() {
 
   return (
     <>
-      <PageHeader title="Metrics" description="Classification eval scores and model spend — the trust + cost layer at a glance." />
+      <PageHeader title="Metrics" description="Classification eval scores and model spend - the trust + cost layer at a glance." />
       <div className="mx-auto max-w-4xl space-y-5 p-6">
         <Card className="p-5">
           <div className="flex items-center justify-between">

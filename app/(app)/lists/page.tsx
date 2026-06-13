@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { relativeTime } from '@/lib/utils';
 
-export const metadata = { title: 'Lists — Signal Scout' };
+export const metadata = { title: 'Lists - Signal Scout' };
 export const dynamic = 'force-dynamic';
 
 export default async function ListsPage() {

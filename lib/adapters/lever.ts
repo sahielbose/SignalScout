@@ -33,7 +33,7 @@ export function mapLeverPosting(company: string, p: LeverPosting): RawItem {
     text:
       `${prettyToken(company)} is hiring: ${p.text}` +
       (loc ? ` (${loc})` : '') +
-      (team ? ` — ${team}` : '') +
+      (team ? ` - ${team}` : '') +
       (body ? `\n${body}` : ''),
     hintType: gtm ? 'expansion' : 'hiring',
     meta: { company, postingId: p.id, team, location: loc, gtm },

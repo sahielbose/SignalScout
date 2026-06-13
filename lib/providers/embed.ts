@@ -6,9 +6,9 @@ import { EMBED_DIM } from '@/lib/db/schema';
  *
  * Default = a deterministic LOCAL bag-of-words hash embedding (1536-d) so the
  * cosine ICP prefilter works with ZERO keys/offline. Cosine of two such vectors
- * tracks lexical overlap — good enough to cheaply gate which items reach the LLM.
+ * tracks lexical overlap - good enough to cheaply gate which items reach the LLM.
  * Swap in a real embedder (OpenAI/Voyage/Ollama) by setting LLM_EMBED_MODEL and
- * implementing remoteEmbed below — the rest of the system is unchanged.
+ * implementing remoteEmbed below - the rest of the system is unchanged.
  */
 
 function tokenize(text: string): string[] {

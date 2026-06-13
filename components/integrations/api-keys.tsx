@@ -51,7 +51,7 @@ export function ApiKeys({ keys }: { keys: KeyRow[] }) {
 
       {fresh && (
         <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
-          <p className="text-xs font-medium text-primary">Copy this key now — it won&apos;t be shown again.</p>
+          <p className="text-xs font-medium text-primary">Copy this key now - it won&apos;t be shown again.</p>
           <div className="mt-2 flex items-center gap-2">
             <code className="flex-1 truncate rounded bg-background px-2 py-1 font-mono text-xs">{fresh}</code>
             <Button size="icon" variant="outline" onClick={copy} className="size-8">

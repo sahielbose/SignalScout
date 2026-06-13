@@ -66,7 +66,7 @@
    * only. Tokens are consumed as hsl(var(--x)) everywhere, so redefining them
    * here recolors every nested Button/Card without per-component overrides.
    */
-  .marketing {
+  .theme-warm {
     --background: 35 40% 92%;
     --foreground: 25 15% 12%;
     --card: 35 44% 96%;
@@ -106,7 +106,7 @@
   }
 
   /* faint dotted dot-grid texture behind the hero */
-  .marketing .paper-dots {
+  .theme-warm .paper-dots {
     background-image: radial-gradient(hsl(var(--paper-dot) / 0.16) 1px, transparent 1.4px);
     background-size: 22px 22px;
     background-position: -11px -11px;
@@ -115,7 +115,7 @@
   }
 
   /* top fade so the signal feed dissolves at its upper edge */
-  .marketing .feed-fade {
+  .theme-warm .feed-fade {
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 100%);
     mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 100%);
   }

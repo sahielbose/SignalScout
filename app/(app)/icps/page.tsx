@@ -3,7 +3,7 @@ import { listIcps } from '@/lib/icp/service';
 import { PageHeader } from '@/components/app/page-header';
 import { IcpManager, type IcpView } from '@/components/icp/icp-manager';
 
-export const metadata = { title: 'ICPs — Signal Scout' };
+export const metadata = { title: 'ICPs - Signal Scout' };
 export const dynamic = 'force-dynamic';
 
 export default async function IcpsPage() {

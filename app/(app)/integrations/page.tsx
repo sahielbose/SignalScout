@@ -8,7 +8,7 @@ import { ApiKeys } from '@/components/integrations/api-keys';
 import { Webhooks } from '@/components/integrations/webhooks';
 import { CopyBlock } from '@/components/integrations/copy-block';
 
-export const metadata = { title: 'Integrations — Signal Scout' };
+export const metadata = { title: 'Integrations - Signal Scout' };
 export const dynamic = 'force-dynamic';
 
 export default async function IntegrationsPage() {
@@ -18,12 +18,12 @@ export default async function IntegrationsPage() {
 
   return (
     <>
-      <PageHeader title="Integrations" description="Programmatic access — REST API keys, with MCP and webhooks alongside." />
+      <PageHeader title="Integrations" description="Programmatic access - REST API keys, with MCP and webhooks alongside." />
       <div className="mx-auto max-w-3xl space-y-6 p-6">
         <Card className="p-5">
           <h2 className="text-sm font-semibold">API keys</h2>
           <p className="mb-4 mt-1 text-xs text-muted-foreground">
-            Keys are hashed at rest — only the prefix is stored. Send as <code>Authorization: Bearer …</code>.
+            Keys are hashed at rest - only the prefix is stored. Send as <code>Authorization: Bearer …</code>.
           </p>
           <ApiKeys keys={keys} />
         </Card>
@@ -54,7 +54,7 @@ curl -H "Authorization: Bearer \$SSK" \\
         <Card className="p-5">
           <h2 className="text-sm font-semibold">Outbound webhooks</h2>
           <p className="mb-4 mt-1 text-xs text-muted-foreground">
-            Signed <code>signal.created</code> events on new high-strength matched signals. CRM push stays a gated, audited action — never automatic.
+            Signed <code>signal.created</code> events on new high-strength matched signals. CRM push stays a gated, audited action - never automatic.
           </p>
           <Webhooks webhooks={hooks.map((w) => ({ id: w.id, url: w.url, events: w.events, active: w.active }))} />
         </Card>
@@ -69,7 +69,7 @@ curl -H "Authorization: Bearer \$SSK" \\
             </p>
           </div>
           <CopyBlock
-            label="Claude Desktop / Cursor — HTTP (hosted)"
+            label="Claude Desktop / Cursor - HTTP (hosted)"
             code={`{
   "mcpServers": {
     "signal-scout": {
@@ -80,7 +80,7 @@ curl -H "Authorization: Bearer \$SSK" \\
 }`}
           />
           <CopyBlock
-            label="Claude Desktop — local stdio (self-host)"
+            label="Claude Desktop - local stdio (self-host)"
             code={`{
   "mcpServers": {
     "signal-scout": {

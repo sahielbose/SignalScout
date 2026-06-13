@@ -16,7 +16,7 @@ import { SIGNAL_TYPE_LABELS, type IcpDefinition } from '@/lib/types';
 import { hasLLM } from '@/lib/env';
 
 const SAMPLE_ICP: { name: string; definition: IcpDefinition } = {
-  name: 'Fintech & developer-tools companies — funding, GTM expansion, launches',
+  name: 'Fintech & developer-tools companies - funding, GTM expansion, launches',
   definition: {
     industries: ['fintech', 'developer tools', 'payments', 'saas', 'infrastructure', 'ai'],
     titles: ['account executive', 'head of sales', 'gtm', 'revenue', 'sales lead', 'growth'],
@@ -93,12 +93,12 @@ async function main() {
   console.log(`\n▶ top ICP-matched signals (${matched.length}):\n`);
   for (const m of matched) {
     const label = m.type ? (SIGNAL_TYPE_LABELS[m.type as keyof typeof SIGNAL_TYPE_LABELS] ?? m.type) : '?';
-    console.log(`  [${(m.strength ?? 0).toFixed(2)}] ${label.padEnd(16)} ${m.company ?? '—'} · ${m.source}`);
+    console.log(`  [${(m.strength ?? 0).toFixed(2)}] ${label.padEnd(16)} ${m.company ?? '-'} · ${m.source}`);
     console.log(`         ${(m.title ?? '').slice(0, 90)}`);
   }
 
   const totalRow = (await db.select({ total: sql<number>`count(*)::int` }).from(signals))[0];
-  console.log(`\n✓ done — ${totalRow?.total ?? 0} total signals in DB\n`);
+  console.log(`\n✓ done - ${totalRow?.total ?? 0} total signals in DB\n`);
   await pgClient.end({ timeout: 5 });
   process.exit(0);
 }

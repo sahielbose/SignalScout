@@ -108,7 +108,7 @@ export function DossierPanel({
 
       {dossier.lowConfidence && (
         <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-300/90">
-          This dossier is low-confidence — fewer than 60% of drafted facts could be backed by a citable source, so unverified
+          This dossier is low-confidence - fewer than 60% of drafted facts could be backed by a citable source, so unverified
           claims were dropped. Add a GitHub handle or LinkedIn URL, or connect a search provider, for a stronger result.
         </div>
       )}
@@ -176,7 +176,7 @@ export function DossierPanel({
 
       {meta && (
         <p className="text-[0.7rem] text-muted-foreground">
-          {meta.cached ? 'Cached' : 'Fresh'} · model {meta.model ?? '—'}
+          {meta.cached ? 'Cached' : 'Fresh'} · model {meta.model ?? '-'}
           {meta.toolCalls != null ? ` · ${meta.toolCalls} tool calls` : ''}
         </p>
       )}

@@ -39,7 +39,7 @@ export function buildClassifierPrompt(input: {
             d.geos?.length ? `geos: ${d.geos.join(', ')}` : '',
             d.signalTypes?.length ? `wants signal types: ${d.signalTypes.join(', ')}` : '',
           ].filter(Boolean);
-          return `${i + 1}. ${icp.name} — ${parts.join('; ')}`;
+          return `${i + 1}. ${icp.name} - ${parts.join('; ')}`;
         })
         .join('\n')
     : '(no ICPs defined)';

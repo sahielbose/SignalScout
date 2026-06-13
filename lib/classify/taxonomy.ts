@@ -14,7 +14,7 @@ export const TAXONOMY: Record<SignalType, TaxonomyEntry> = {
   funding: {
     type: 'funding',
     label: 'Funding',
-    description: 'Raised capital — a round, a Form D/Reg D offering, an S-1, a funding announcement.',
+    description: 'Raised capital - a round, a Form D/Reg D offering, an S-1, a funding announcement.',
     cues: ['raised', 'series ', 'seed round', 'funding', 'form d', 'reg d', 'offering', 'investment', 'led by', 'venture'],
     baseStrength: 0.72,
   },
@@ -42,7 +42,7 @@ export const TAXONOMY: Record<SignalType, TaxonomyEntry> = {
   expansion: {
     type: 'expansion',
     label: 'Expansion',
-    description: 'GTM/revenue expansion — opening a new market, building a sales team, new office, GTM hiring.',
+    description: 'GTM/revenue expansion - opening a new market, building a sales team, new office, GTM hiring.',
     cues: ['account executive', 'gtm', 'go-to-market', 'sales lead', 'head of sales', 'new office', 'expanding to', 'revenue'],
     baseStrength: 0.6,
   },

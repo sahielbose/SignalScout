@@ -1,5 +1,5 @@
 /**
- * Classification eval harness — the project's CI gate.
+ * Classification eval harness - the project's CI gate.
  * Runs the live classifier over hand-labeled golden items, prints per-type
  * precision/recall/F1, and EXITS NON-ZERO on regression below thresholds.
  *   pnpm eval
@@ -15,7 +15,7 @@ const STRENGTH_MIN = 0.8;
 
 async function main() {
   const r = await runClassificationEval();
-  console.log(`\nClassification eval — ${r.total} labeled items (LLM: ${hasLLM() ? 'real' : 'mock'})\n`);
+  console.log(`\nClassification eval - ${r.total} labeled items (LLM: ${hasLLM() ? 'real' : 'mock'})\n`);
   console.log('  type'.padEnd(22) + 'support  precision  recall   f1');
   console.log('  ' + '─'.repeat(56));
 
