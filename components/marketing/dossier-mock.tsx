@@ -1,8 +1,7 @@
-import { Fragment } from 'react';
-import { Github, Globe, FileText } from 'lucide-react';
+import { Github, Globe, FileText, Link2, MapPin, ChevronDown } from 'lucide-react';
 import { TypeBadge } from './type-badge';
 
-const tags = ['Platform', 'Open source', 'Series B', 'Decision maker'];
+const tags = ['Platform', 'API tooling', 'Open source', 'Series B'];
 
 const fields: [string, string][] = [
   ['Company', 'Cobalt Labs'],
@@ -12,59 +11,88 @@ const fields: [string, string][] = [
 ];
 
 const matches: [string, string][] = [
-  ['Priya Raman', 'Principal Engineer, Junction Analytics'],
-  ['Marcus Lind', 'Head of Platform, Brightwall Energy'],
-  ['Sofia Reyes', 'Staff Engineer, Atlas Freight'],
+  ['Maya Chen', 'Platform Engineer, Northwind'],
+  ['James Okafor', 'Staff Engineer, Junction Analytics'],
+  ['Priya Narayan', 'Developer Experience, Brightwall'],
+  ['Ryan Matsumoto', 'Senior Engineer, Atlas Freight'],
 ];
+
+const sourceIcons = [Github, Globe, FileText, Link2];
+
+function inits(n: string) {
+  return n
+    .split(' ')
+    .map((p) => p[0])
+    .join('');
+}
 
 export function DossierMock() {
   return (
     <div className="rounded-xl border border-border bg-[hsl(var(--card))] p-5">
       <div className="flex items-start gap-3">
-        <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-[hsl(var(--accent))] text-sm font-semibold text-[hsl(var(--accent-foreground))]">
+        <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-[hsl(var(--accent))] text-base font-semibold text-[hsl(var(--accent-foreground))]">
           DO
         </span>
-        <div className="min-w-0">
-          <p className="font-semibold tracking-tight">Dana Okafor</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-lg font-semibold tracking-tight">Dana Okafor</p>
           <p className="text-sm text-[hsl(var(--muted-foreground))]">Staff Engineer @ Cobalt Labs</p>
-          <div className="mt-1.5 flex items-center gap-2 text-[hsl(var(--muted-foreground))]">
-            <span className="text-xs">Denver, Colorado</span>
-            <Github className="size-3.5" />
-            <Globe className="size-3.5" />
-            <FileText className="size-3.5" />
+          <div className="mt-2 flex items-center gap-1.5">
+            {sourceIcons.map((Icon, i) => (
+              <span
+                key={i}
+                className="grid size-6 place-items-center rounded-md border border-border text-[hsl(var(--muted-foreground))]"
+              >
+                <Icon className="size-3" />
+              </span>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-1.5">
+      <div className="mt-4 flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))]">
+        <MapPin className="size-3.5" /> Denver, Colorado
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {tags.map((t) => (
-          <TypeBadge key={t}>{t}</TypeBadge>
+          <TypeBadge key={t} tone="soft">
+            {t}
+          </TypeBadge>
         ))}
       </div>
 
-      <div className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+      <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-border pt-4 text-sm">
         {fields.map(([k, v]) => (
-          <Fragment key={k}>
-            <span className="text-[hsl(var(--muted-foreground))]">{k}</span>
-            <span className={k === 'GitHub' ? 'font-mono text-xs' : ''}>{v}</span>
-          </Fragment>
+          <div key={k} className="flex flex-col gap-0.5">
+            <span className="text-xs text-[hsl(var(--muted-foreground))]">{k}</span>
+            <span className={k === 'GitHub' ? 'font-mono text-xs' : 'font-medium'}>{v}</span>
+          </div>
         ))}
       </div>
 
       <p className="mt-4 text-sm text-[hsl(var(--muted-foreground))]">
-        Dana owns the public API surface at Cobalt Labs and has shipped three releases this quarter.
+        Owns the public API surface at Cobalt Labs, a heavy contributor to API and docs tooling on GitHub, and shipped
+        three releases this quarter. Spoke about scaling a public API at DevConf.
       </p>
 
-      <div className="mt-5 border-t border-border pt-4">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Matches</p>
-        <div className="mt-2 space-y-2">
-          {matches.map(([name, role]) => (
-            <div key={name} className="flex items-center justify-between gap-3 text-sm">
-              <span className="font-medium">{name}</span>
-              <span className="truncate text-right text-xs text-[hsl(var(--muted-foreground))]">{role}</span>
+      <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+          Matches 4
+        </p>
+        <ChevronDown className="size-4 text-[hsl(var(--muted-foreground))]" />
+      </div>
+      <div className="mt-2 space-y-1.5">
+        {matches.map(([n, r]) => (
+          <div key={n} className="flex items-center gap-2.5 rounded-lg border border-border px-3 py-2">
+            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[hsl(var(--muted))] text-[10px] font-semibold">
+              {inits(n)}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium leading-tight">{n}</p>
+              <p className="truncate text-xs text-[hsl(var(--muted-foreground))]">{r}</p>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );
