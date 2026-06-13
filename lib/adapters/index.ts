@@ -7,6 +7,8 @@ import { ashbyAdapter } from './ashby';
 import { githubAdapter } from './github';
 import { webDiffAdapter } from './web-diff';
 import { lumaAdapter } from './luma';
+import { hackernewsAdapter } from './hackernews';
+import { producthuntAdapter } from './producthunt';
 
 export const adapters: Record<SourceName, Adapter> = {
   sec: secAdapter,
@@ -16,6 +18,8 @@ export const adapters: Record<SourceName, Adapter> = {
   github: githubAdapter,
   web: webDiffAdapter,
   luma: lumaAdapter,
+  hackernews: hackernewsAdapter,
+  producthunt: producthuntAdapter,
 };
 
 export function getAdapter(source: string): Adapter {

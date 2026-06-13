@@ -26,6 +26,7 @@ export async function GET(req: Request) {
   if (Number.isFinite(minStrength) && minStrength > 0) filters.minStrength = minStrength;
   const sinceDays = Number(q.get('sinceDays'));
   if (Number.isFinite(sinceDays) && sinceDays > 0) filters.sinceDays = sinceDays;
+  if (q.get('showCleared') === '1') filters.showCleared = true;
 
   const page = Math.max(0, Number(q.get('page') ?? 0) || 0);
   const result = await getFeed(session.user.orgId, filters, page);

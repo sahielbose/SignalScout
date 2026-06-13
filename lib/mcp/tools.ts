@@ -5,10 +5,13 @@ import { signals, companies } from '@/lib/db/schema';
 import { getFeed } from '@/lib/feed/queries';
 import { getPersonWithDossier } from '@/lib/research/people-queries';
 import { generateDossier } from '@/lib/research/agent';
-import { getListMembers } from '@/lib/lists/service';
+import { getListMembers, listLists, createList, addPersonToList } from '@/lib/lists/service';
+import { listIcps } from '@/lib/icp/service';
+import { listCompaniesWithCounts } from '@/lib/companies/queries';
+import { getEvents } from '@/lib/events/queries';
 import { toCsv } from '@/lib/delivery/csv';
 import { normalizeDomain, normalizeCompanyName } from '@/lib/entity/normalize';
-import { SignalTypeSchema, SourceSchema } from '@/lib/types';
+import { SignalTypeSchema, SourceSchema, type IcpDefinition } from '@/lib/types';
 
 export interface McpTool {
   name: string;
@@ -30,6 +33,18 @@ async function resolveCompany(input: { companyId?: string; domain?: string; name
     .where(or(domain ? eq(companies.domain, domain) : undefined, normName ? eq(companies.normalizedName, normName) : undefined))
     .limit(1);
   return c ?? null;
+}
+
+/** Build a short, human-readable one-line summary of an ICP definition. */
+function summarizeIcpDefinition(def: IcpDefinition): string {
+  const parts: string[] = [];
+  if (def.industries?.length) parts.push(`industries: ${def.industries.join(', ')}`);
+  if (def.titles?.length) parts.push(`titles: ${def.titles.join(', ')}`);
+  if (def.companySize) parts.push(`size: ${def.companySize}`);
+  if (def.geos?.length) parts.push(`geos: ${def.geos.join(', ')}`);
+  if (def.signalTypes?.length) parts.push(`signals: ${def.signalTypes.join(', ')}`);
+  if (def.keywords?.length) parts.push(`keywords: ${def.keywords.join(', ')}`);
+  return parts.join('; ') || 'no criteria set';
 }
 
 export const MCP_TOOLS: McpTool[] = [
@@ -156,6 +171,93 @@ export const MCP_TOOLS: McpTool[] = [
         members.map((m) => [m.kind, m.name, m.title, m.companyName, m.domain, m.linkedinUrl, m.githubLogin, m.location]),
       );
       return { csv, count: members.length };
+    },
+  },
+  {
+    name: 'list_icps',
+    description: "List the connected org's Ideal Customer Profiles (ICPs). Returns each ICP id, name, whether it is active, and a short summary of its definition.",
+    schema: {},
+    async handle(_args, orgId) {
+      const rows = await listIcps(orgId);
+      return {
+        icps: rows.map((r) => ({
+          id: r.id,
+          name: r.name,
+          active: r.active,
+          definition: summarizeIcpDefinition(r.definition as IcpDefinition),
+        })),
+      };
+    },
+  },
+  {
+    name: 'list_companies',
+    description: "List the connected org's tracked companies (those with ICP-matched signals), ranked by signal volume. Returns id, name, domain, signal count, and most-recent signal time.",
+    schema: { limit: z.number().int().min(1).max(100).optional() },
+    async handle(args, orgId) {
+      const limit = typeof args.limit === 'number' ? args.limit : 50;
+      const rows = await listCompaniesWithCounts(orgId, limit);
+      return {
+        companies: rows.map((c) => ({
+          id: c.id,
+          name: c.name,
+          domain: c.domain,
+          signals: c.signals,
+          last_at: c.lastAt,
+        })),
+      };
+    },
+  },
+  {
+    name: 'list_events',
+    description: "List the connected org's upcoming/recent event signals (conferences, meetups) matched to its ICPs. Returns event title, company, linked ICP-matched attendee (if any), strength, date, and url.",
+    schema: { limit: z.number().int().min(1).max(50).optional() },
+    async handle(args, orgId) {
+      const limit = typeof args.limit === 'number' ? args.limit : 20;
+      const rows = await getEvents(orgId);
+      return {
+        events: rows.slice(0, limit).map((e) => ({
+          id: e.id,
+          title: e.title,
+          source: e.source,
+          strength: e.strength,
+          company: e.companyName,
+          domain: e.companyDomain,
+          person_id: e.personId,
+          person: e.personName,
+          person_title: e.personTitle,
+          url: e.sourceUrl,
+          why: e.justification,
+          date: e.date ?? e.ingestedAt,
+        })),
+      };
+    },
+  },
+  {
+    name: 'add_person_to_list',
+    description: 'Add a person to a saved list for the connected org, creating the list by name if it does not exist. Returns the list id and the new member count. Idempotent: re-adding the same person does not duplicate.',
+    schema: { personId: z.string(), listName: z.string() },
+    async handle(args, orgId) {
+      const personId = String(args.personId);
+      const listName = String(args.listName).trim();
+      const wanted = listName.toLowerCase();
+      const existing = await listLists(orgId);
+      let list = existing.find((l) => (l.name ?? '').trim().toLowerCase() === wanted);
+      let created = false;
+      if (!list) {
+        const row = await createList(orgId, listName);
+        if (!row) return { error: 'list_create_failed' };
+        list = { id: row.id, name: row.name, createdAt: row.createdAt, members: 0 };
+        created = true;
+      }
+      const ok = await addPersonToList(orgId, list.id, personId);
+      if (!ok) return { error: 'list_not_found' };
+      const members = await getListMembers(orgId, list.id);
+      return {
+        list_id: list.id,
+        list_name: list.name,
+        created,
+        member_count: members.length,
+      };
     },
   },
 ];

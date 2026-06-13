@@ -92,4 +92,7 @@ export const DEFAULT_TARGETS: MonitoredSource[] = [
   { source: 'sec', key: '320193' }, // Apple (demo of per-company submissions)
   // content / events
   { source: 'web', key: 'https://stripe.com/blog' },
+  // launches (free, no-auth public feeds)
+  { source: 'hackernews', key: 'show_hn' },
+  { source: 'producthunt', key: 'feed' },
 ];

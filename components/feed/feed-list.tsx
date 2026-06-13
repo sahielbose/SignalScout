@@ -14,11 +14,13 @@ export function FeedList({
   initialHasMore,
   query,
   total,
+  showCleared = false,
 }: {
   initialItems: FeedItem[];
   initialHasMore: boolean;
   query: string; // serialized filters (without page)
   total: number;
+  showCleared?: boolean;
 }) {
   const [items, setItems] = useState<FeedItem[]>(initialItems);
   const [page, setPage] = useState(0);
@@ -64,6 +66,22 @@ export function FeedList({
     return () => obs.disconnect();
   }, [loadMore]);
 
+  // When the worklist view is hiding cleared items, removing one from the list
+  // keeps the inbox-zero feel. In the "show cleared" view we keep it visible and
+  // let the server revalidation refresh its status badge.
+  const onCleared = useCallback(
+    (item: FeedItem) => {
+      if (!showCleared) setItems((prev) => prev.filter((it) => it.id !== item.id));
+    },
+    [showCleared],
+  );
+
+  const onReopened = useCallback((item: FeedItem) => {
+    setItems((prev) =>
+      prev.map((it) => (it.id === item.id ? { ...it, status: 'open', snoozedUntil: null } : it)),
+    );
+  }, []);
+
   const onAddToList = useCallback(async (item: FeedItem) => {
     const kind = item.companyId ? 'company' : item.personId ? 'person' : null;
     const entityId = item.companyId ?? item.personId;
@@ -98,7 +116,12 @@ export function FeedList({
           className="animate-fade-up"
           style={{ animationDelay: `${Math.min(i, 12) * 50}ms` }}
         >
-          <SignalCard item={item} onAddToList={onAddToList} />
+          <SignalCard
+            item={item}
+            onAddToList={onAddToList}
+            onCleared={onCleared}
+            onReopened={onReopened}
+          />
         </div>
       ))}
       <div ref={sentinel} className="h-1" />

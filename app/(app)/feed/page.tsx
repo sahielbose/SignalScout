@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { z } from 'zod';
 import { requireOrgId } from '@/lib/auth/session';
 import { getFeed, getFeedFacets, type FeedFilters } from '@/lib/feed/queries';
@@ -42,7 +43,20 @@ function parseFilters(sp: SP): { filters: FeedFilters; query: string } {
     filters.sinceDays = sinceDays;
     params.set('sinceDays', String(sinceDays));
   }
+  if (get('showCleared') === '1') {
+    filters.showCleared = true;
+    params.set('showCleared', '1');
+  }
   return { filters, query: params.toString() };
+}
+
+/** Build the href to the feed with `showCleared` flipped, preserving filters. */
+function toggleClearedHref(query: string, showCleared: boolean): string {
+  const params = new URLSearchParams(query);
+  if (showCleared) params.delete('showCleared');
+  else params.set('showCleared', '1');
+  const q = params.toString();
+  return q ? `/feed?${q}` : '/feed';
 }
 
 export default async function FeedPage({ searchParams }: { searchParams: Promise<SP> }) {
@@ -57,6 +71,7 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
   ]);
 
   // brand-new account with nothing in the feed → guided onboarding
+  const showCleared = filters.showCleared === true;
   const noFilters = !query;
   if (total === 0 && noFilters) {
     return <OnboardingCard hasIcp={icpRows.length > 0} />;
@@ -72,9 +87,24 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
             sources: facets.sources,
           }}
         />
+        <div className="flex items-center justify-end px-6 pt-3">
+          <Link
+            href={toggleClearedHref(query, showCleared)}
+            className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            {showCleared ? 'Hide cleared' : 'Show cleared'}
+          </Link>
+        </div>
       </div>
       <div className="flex-1">
-        <FeedList key={query} initialItems={items} initialHasMore={hasMore} query={query} total={total} />
+        <FeedList
+          key={query}
+          initialItems={items}
+          initialHasMore={hasMore}
+          query={query}
+          total={total}
+          showCleared={showCleared}
+        />
       </div>
     </div>
   );

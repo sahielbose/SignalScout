@@ -18,7 +18,17 @@ export const SIGNAL_TYPES = [
 export type SignalType = (typeof SIGNAL_TYPES)[number];
 export const SignalTypeSchema = z.enum(SIGNAL_TYPES);
 
-export const SOURCES = ['sec', 'greenhouse', 'lever', 'ashby', 'github', 'web', 'luma'] as const;
+export const SOURCES = [
+  'sec',
+  'greenhouse',
+  'lever',
+  'ashby',
+  'github',
+  'web',
+  'luma',
+  'hackernews',
+  'producthunt',
+] as const;
 export type SourceName = (typeof SOURCES)[number];
 export const SourceSchema = z.enum(SOURCES);
 
@@ -147,4 +157,6 @@ export const SOURCE_LABELS: Record<SourceName, string> = {
   github: 'GitHub',
   web: 'Web',
   luma: 'lu.ma',
+  hackernews: 'Hacker News',
+  producthunt: 'Product Hunt',
 };

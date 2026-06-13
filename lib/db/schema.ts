@@ -351,6 +351,23 @@ export const rateLimits = pgTable('rate_limits', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Per-org worklist state for a signal (the feed becomes an inbox you clear).
+export const signalStatus = pgTable(
+  'signal_status',
+  {
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    signalId: uuid('signal_id')
+      .notNull()
+      .references(() => signals.id, { onDelete: 'cascade' }),
+    status: text('status').notNull().default('open'), // open | snoozed | actioned | dismissed
+    snoozedUntil: timestamp('snoozed_until', { withTimezone: true }),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.orgId, t.signalId] })],
+);
+
 // Convenience type exports
 export type Organization = typeof organizations.$inferSelect;
 export type User = typeof users.$inferSelect;

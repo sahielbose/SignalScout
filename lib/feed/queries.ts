@@ -1,6 +1,7 @@
-import { and, desc, eq, gte, sql, arrayOverlaps, arrayContains, type SQL } from 'drizzle-orm';
+import { and, desc, eq, gte, sql, or, isNull, arrayOverlaps, arrayContains, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
-import { signals, companies, people, icps } from '@/lib/db/schema';
+import { signals, companies, people, icps, signalStatus } from '@/lib/db/schema';
+import type { SignalStatusValue } from '@/lib/feed/status';
 import type { SignalType, SourceName } from '@/lib/types';
 
 export interface FeedFilters {
@@ -9,6 +10,8 @@ export interface FeedFilters {
   source?: SourceName;
   minStrength?: number;
   sinceDays?: number;
+  /** When true, do NOT hide dismissed/actioned/active-snoozed signals. */
+  showCleared?: boolean;
 }
 
 export interface FeedItem {
@@ -28,6 +31,9 @@ export interface FeedItem {
   personId: string | null;
   personName: string | null;
   matchedIcpIds: string[];
+  /** Worklist state for the current org. 'open' when no row exists. */
+  status: SignalStatusValue;
+  snoozedUntil: Date | null;
 }
 
 export const FEED_PAGE_SIZE = 20;
@@ -64,6 +70,29 @@ export async function getFeed(
     conds.push(sql`coalesce(${signals.publishedAt}, ${signals.ingestedAt}) >= ${since}::timestamptz`);
   }
 
+  // Worklist exclusion (default): hide dismissed/actioned signals and snoozed
+  // ones whose snooze is still in the future. 'open' (no row) always shows.
+  if (!filters.showCleared) {
+    const nowIso = new Date().toISOString();
+    conds.push(
+      or(
+        isNull(signalStatus.status),
+        eq(signalStatus.status, 'open'),
+        and(eq(signalStatus.status, 'snoozed'), sql`${signalStatus.snoozedUntil} is null`),
+        and(
+          eq(signalStatus.status, 'snoozed'),
+          sql`${signalStatus.snoozedUntil} <= ${nowIso}::timestamptz`,
+        ),
+      )!,
+    );
+  }
+
+  // org-scoped LEFT JOIN onto the worklist (keeps signals with no status row).
+  const statusJoinOn = and(
+    eq(signalStatus.signalId, signals.id),
+    eq(signalStatus.orgId, orgId),
+  );
+
   const where = and(...conds);
   const sortKey = sql`coalesce(${signals.publishedAt}, ${signals.ingestedAt})`;
 
@@ -85,20 +114,31 @@ export async function getFeed(
       personId: signals.personId,
       personName: people.fullName,
       matchedIcpIds: signals.matchedIcpIds,
+      status: signalStatus.status,
+      snoozedUntil: signalStatus.snoozedUntil,
     })
     .from(signals)
     .leftJoin(companies, eq(signals.companyId, companies.id))
     .leftJoin(people, eq(signals.personId, people.id))
+    .leftJoin(signalStatus, statusJoinOn)
     .where(where)
     .orderBy(desc(sortKey), desc(signals.id))
     .limit(FEED_PAGE_SIZE + 1)
     .offset(page * FEED_PAGE_SIZE);
 
   const hasMore = rows.length > FEED_PAGE_SIZE;
-  const items = rows.slice(0, FEED_PAGE_SIZE) as FeedItem[];
+  const items: FeedItem[] = rows.slice(0, FEED_PAGE_SIZE).map((r) => ({
+    ...r,
+    status: (r.status as SignalStatusValue | null) ?? 'open',
+    snoozedUntil: r.snoozedUntil ?? null,
+  }));
 
   const totalRow = (
-    await db.select({ total: sql<number>`count(*)::int` }).from(signals).where(where)
+    await db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(signals)
+      .leftJoin(signalStatus, statusJoinOn)
+      .where(where)
   )[0];
 
   return { items, hasMore, total: totalRow?.total ?? 0 };

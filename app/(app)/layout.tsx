@@ -5,6 +5,7 @@ import { organizations } from '@/lib/db/schema';
 import { Sidebar } from '@/components/app/sidebar';
 import { MobileNav } from '@/components/app/mobile-nav';
 import { UserMenu } from '@/components/app/user-menu';
+import { CommandK } from '@/components/app/command-k';
 import { Toaster } from '@/components/ui/toaster';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -31,6 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </header>
         <main className="scroll-thin flex-1 overflow-y-auto">{children}</main>
       </div>
+      <CommandK />
       <Toaster />
     </div>
   );

@@ -2,10 +2,12 @@
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { ExternalLink, ShieldAlert, ShieldCheck, Quote, Sparkles, MessageSquare, Users, Loader2, ArrowRight } from 'lucide-react';
+import { ExternalLink, ShieldAlert, ShieldCheck, Quote, Sparkles, MessageSquare, Users, Loader2, ArrowRight, Mail, Copy, Check } from 'lucide-react';
 import type { GuardedDossier } from '@/lib/research/dossier';
 import type { Fact } from '@/lib/types';
 import { findSimilarAction, type SimilarActionResult } from '@/lib/research/actions';
+import { draftEmailAction } from '@/lib/research/email-actions';
+import type { EmailDraftResult } from '@/lib/research/email-draft';
 import { toast } from '@/lib/toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -155,6 +157,77 @@ function SimilarPeople({ personId }: { personId: string }) {
   );
 }
 
+function DraftEmail({ personId }: { personId: string }) {
+  const [res, setRes] = useState<EmailDraftResult | null>(null);
+  const [pending, start] = useTransition();
+  const [copied, setCopied] = useState(false);
+
+  const run = () => {
+    setRes(null);
+    setCopied(false);
+    start(async () => {
+      const r = await draftEmailAction(personId);
+      setRes(r);
+      if (!r.ok) {
+        toast(r.error ?? 'Could not draft an email', 'error');
+      } else {
+        toast('Drafted a cold email from the dossier', 'success');
+      }
+    });
+  };
+
+  const copy = async () => {
+    if (!res?.ok || !res.subject || !res.body) return;
+    const text = `Subject: ${res.subject}\n\n${res.body}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast('Copied subject and body to clipboard', 'success');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast('Could not copy to clipboard', 'error');
+    }
+  };
+
+  return (
+    <div className="rounded-md border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
+            <Mail className="size-3.5" /> Outreach email draft
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Write a short, specific cold email from this person&apos;s cited research.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={run} disabled={pending} className="shrink-0">
+          {pending ? <Loader2 className="animate-spin" /> : <Mail />}
+          {pending ? 'Drafting…' : 'Draft email'}
+        </Button>
+      </div>
+
+      {res?.ok && res.subject && res.body && (
+        <div className="mt-3 animate-fade-up space-y-2 rounded-md border bg-muted/40 p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-[0.7rem] font-medium uppercase tracking-wide text-muted-foreground">Subject</div>
+              <p className="text-sm font-medium">{res.subject}</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={copy} className="shrink-0">
+              {copied ? <Check className="text-primary" /> : <Copy />}
+              {copied ? 'Copied' : 'Copy'}
+            </Button>
+          </div>
+          <div>
+            <div className="text-[0.7rem] font-medium uppercase tracking-wide text-muted-foreground">Body</div>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed">{res.body}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function DossierPanel({
   dossier,
   meta,
@@ -247,7 +320,8 @@ export function DossierPanel({
         </div>
       </div>
 
-      {/* lookalike prospecting (only when we have a persisted person to anchor on) */}
+      {/* outreach email draft + lookalike prospecting (only with a persisted person to anchor on) */}
+      {personId && <DraftEmail personId={personId} />}
       {personId && <SimilarPeople personId={personId} />}
 
       {/* sources */}

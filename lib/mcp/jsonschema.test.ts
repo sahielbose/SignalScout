@@ -30,6 +30,10 @@ describe('zodShapeToJsonSchema', () => {
       'generate_dossier',
       'list_signals_for_company',
       'export_list',
+      'list_icps',
+      'list_companies',
+      'list_events',
+      'add_person_to_list',
     ]);
   });
 });
