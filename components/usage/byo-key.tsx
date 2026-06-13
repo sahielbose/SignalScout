@@ -140,7 +140,7 @@ export function ByoKey({ masked }: { masked: string | null }) {
     start(async () => {
       const r = await saveByoKeyAction(key);
       if (r.ok) {
-        toast('Key saved. Your research now runs on your own key with no daily cap.', 'success');
+        toast('Key saved. Your research, email drafts, and summaries now run on your own key with no daily cap.', 'success');
         setSaved(true);
         setKey('');
       } else toast(r.error ?? 'Could not save key', 'error');
@@ -170,10 +170,13 @@ export function ByoKey({ masked }: { masked: string | null }) {
       {/* Be honest about exactly which work the key powers today, so the toggle
           above and this section never imply an effect the app does not have. */}
       <div className="rounded-md border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
-        <span className="font-medium text-foreground">What your key powers:</span> right now your key runs your
-        <span className="font-medium text-foreground"> research profiles</span> (the deep, sourced write-ups we build on
-        a person). Reading and tagging new public buying moments still runs on Signal Scout&apos;s shared free tier and
-        stays within its own daily allowance, so that work keeps flowing whether or not you add a key.
+        <span className="font-medium text-foreground">What your key powers:</span> the AI work you trigger by hand runs on
+        your key with no daily cap. That is your{' '}
+        <span className="font-medium text-foreground">research profiles</span> (the deep, sourced write-ups on a person),
+        your <span className="font-medium text-foreground">outreach email drafts</span>, and the{' '}
+        <span className="font-medium text-foreground">Summarize</span> tool. Reading and tagging new public buying moments
+        runs in the background on Signal Scout&apos;s shared free tier and stays within its own daily allowance, so that
+        work keeps flowing whether or not you add a key.
       </div>
 
       <div className="flex gap-2">
