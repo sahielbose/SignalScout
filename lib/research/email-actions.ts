@@ -1,6 +1,8 @@
 'use server';
 
+import { auth } from '@/lib/auth';
 import { requireOrgId } from '@/lib/auth/session';
+import { getByoKey } from '@/lib/users/service';
 import { draftOutreachEmail, type EmailDraftResult } from './email-draft';
 
 /**
@@ -20,7 +22,9 @@ export async function draftEmailAction(personId: string): Promise<EmailDraftResu
   }
 
   try {
-    return await draftOutreachEmail(orgId, id);
+    const s = await auth();
+    const byoKey = s?.user?.id ? await getByoKey(s.user.id) : null;
+    return await draftOutreachEmail(orgId, id, byoKey);
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }

@@ -105,6 +105,8 @@ export default function PersonPage({ params }: { params: Promise<{ id: string }>
   return (
     <>
       <PageHeader
+        backHref="/feed"
+        backLabel="Back to feed"
         title={person.fullName}
         description={
           subtitle

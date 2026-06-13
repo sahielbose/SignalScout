@@ -40,6 +40,8 @@ export default async function CompanyPage({
   return (
     <>
       <PageHeader
+        backHref="/companies"
+        backLabel="All companies"
         title={company.name ?? company.domain ?? 'Company'}
         description="Everything we are watching at this company: each public buying sign over time, and the people who work here grouped by team."
       >

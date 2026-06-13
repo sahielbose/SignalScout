@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/app/page-header';
 import { FilterBar } from '@/components/feed/filter-bar';
 import { FeedList } from '@/components/feed/feed-list';
 import { OnboardingCard } from '@/components/onboarding/onboarding-card';
+import { SummarizeButton } from '@/components/summarize/summarize-button';
 
 export const metadata = { title: 'Feed - Signal Scout' };
 export const dynamic = 'force-dynamic';
@@ -96,6 +97,7 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
       <PageHeader
         title="Signal feed"
         description="A live list of public moments that suggest a company is ready to buy, kept to the kinds of customers you sell to."
+        actions={<SummarizeButton />}
       />
       <div className="animate-fade-down">
         <FilterBar

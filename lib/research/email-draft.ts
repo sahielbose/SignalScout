@@ -14,6 +14,8 @@ export interface EmailDraftResult {
   subject?: string;
   body?: string;
   model?: string;
+  /** True when the user's own AI key powered this draft. */
+  usingOwnKey?: boolean;
   error?: string;
 }
 
@@ -112,7 +114,11 @@ const DraftSchema = z.object({
  * for this person. Gates on hasLLM(): with no key it returns a deterministic
  * templated draft (never throws). Applies stripDashes to subject and body.
  */
-export async function draftOutreachEmail(orgId: string, personId: string): Promise<EmailDraftResult> {
+export async function draftOutreachEmail(
+  orgId: string,
+  personId: string,
+  byoKey?: string | null,
+): Promise<EmailDraftResult> {
   if (!orgId || !personId) return { ok: false, error: 'Missing person.' };
 
   const d = await loadDossier(orgId, personId);
@@ -120,8 +126,8 @@ export async function draftOutreachEmail(orgId: string, personId: string): Promi
     return { ok: false, error: 'No dossier found for this person yet. Run research first.' };
   }
 
-  // No LLM key → deterministic templated draft (never throws).
-  const model = hasLLM() ? getModel('research') : null;
+  // No shared key and no user key → deterministic templated draft (never throws).
+  const model = hasLLM() || byoKey ? getModel('research', byoKey) : null;
   if (!model) {
     const draft = buildTemplateDraft(d);
     return {
@@ -129,6 +135,7 @@ export async function draftOutreachEmail(orgId: string, personId: string): Promi
       subject: stripDashes(draft.subject),
       body: stripDashes(draft.body),
       model: 'mock',
+      usingOwnKey: !!byoKey,
     };
   }
 
@@ -183,6 +190,7 @@ export async function draftOutreachEmail(orgId: string, personId: string): Promi
       subject: stripDashes(object.subject),
       body: stripDashes(object.body),
       model: usedModel,
+      usingOwnKey: !!byoKey,
     };
   } catch {
     // Model errored → fall back to a deterministic draft rather than failing.
@@ -192,6 +200,7 @@ export async function draftOutreachEmail(orgId: string, personId: string): Promi
       subject: stripDashes(draft.subject),
       body: stripDashes(draft.body),
       model: 'mock',
+      usingOwnKey: !!byoKey,
     };
   }
 }

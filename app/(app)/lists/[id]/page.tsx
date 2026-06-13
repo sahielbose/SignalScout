@@ -157,6 +157,8 @@ export default async function ListDetailPage({
   return (
     <>
       <PageHeader
+        backHref="/lists"
+        backLabel="All lists"
         title={list.name}
         description={
           totalCount === 0
