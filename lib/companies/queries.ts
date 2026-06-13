@@ -40,6 +40,12 @@ export function inferDepartment(title?: string | null): string {
   return 'Other';
 }
 
+export interface CompanyPerson {
+  id: string;
+  name: string;
+  title: string | null;
+}
+
 export interface CompanyProfile {
   company: typeof companies.$inferSelect;
   timeline: {
@@ -53,7 +59,9 @@ export interface CompanyProfile {
     ingestedAt: Date;
   }[];
   byType: { type: string; count: number }[];
-  departments: { name: string; people: { id: string; name: string; title: string | null }[] }[];
+  /** Flat, org-scoped list of people at this company (ordered by confidence). */
+  people: CompanyPerson[];
+  departments: { name: string; people: CompanyPerson[] }[];
 }
 
 export async function getCompanyProfile(orgId: string, companyId: string): Promise<CompanyProfile | null> {
@@ -98,13 +106,13 @@ export async function getCompanyProfile(orgId: string, companyId: string): Promi
     .filter((r): r is { type: string; count: number } => !!r.type)
     .sort((a, b) => b.count - a.count);
 
-  const peopleRows = await db
+  const peopleRows: CompanyPerson[] = await db
     .select({ id: people.id, name: people.fullName, title: people.title })
     .from(people)
     .where(eq(people.companyId, companyId))
     .orderBy(desc(people.confidence));
 
-  const deptMap = new Map<string, { id: string; name: string; title: string | null }[]>();
+  const deptMap = new Map<string, CompanyPerson[]>();
   for (const p of peopleRows) {
     const d = inferDepartment(p.title);
     if (!deptMap.has(d)) deptMap.set(d, []);
@@ -113,5 +121,5 @@ export async function getCompanyProfile(orgId: string, companyId: string): Promi
   const ORDER = ['Leadership', 'Go-to-Market', 'Engineering', 'Product & Design', 'Marketing', 'Operations', 'Other'];
   const departments = ORDER.filter((d) => deptMap.has(d)).map((name) => ({ name, people: deptMap.get(name)! }));
 
-  return { company, timeline, byType, departments };
+  return { company, timeline, byType, people: peopleRows, departments };
 }

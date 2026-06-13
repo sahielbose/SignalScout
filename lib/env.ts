@@ -61,6 +61,24 @@ const EnvSchema = z.object({
   APOLLO_API_KEY: z.string().optional(),
   PDL_API_KEY: z.string().optional(),
 
+  // CRM push (Stage-2, gated, off by default). No keys -> a safe no-op provider.
+  ENABLE_CRM: bool(false),
+  CRM_PROVIDER: z.enum(['none', 'hubspot', 'salesforce']).default('none'),
+  HUBSPOT_API_KEY: z.string().optional(),
+  SALESFORCE_INSTANCE_URL: z.string().optional(),
+  SALESFORCE_ACCESS_TOKEN: z.string().optional(),
+
+  // Incorporation feed (off by default; needs a paid registry like OpenCorporates).
+  ENABLE_INCORPORATION: bool(false),
+  OPENCORPORATES_API_KEY: z.string().optional(),
+
+  // Scheduled flat-file delivery (email always works via log-fallback; S3 needs keys).
+  SCHEDULED_CSV_DELIVERY: bool(false),
+  S3_BUCKET: z.string().optional(),
+  S3_REGION: z.string().default('us-east-1'),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
+
   SENTRY_DSN: z.string().optional(),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -98,4 +116,26 @@ export function hasSearch(): boolean {
   if (e.SEARCH_PROVIDER === 'exa') return !!e.EXA_API_KEY;
   if (e.SEARCH_PROVIDER === 'searxng') return true;
   return false;
+}
+
+/** True when a CRM push target is configured. Otherwise pushes are a safe no-op. */
+export function hasCrm(): boolean {
+  const e = env();
+  if (!e.ENABLE_CRM || e.CRM_PROVIDER === 'none') return false;
+  if (e.CRM_PROVIDER === 'hubspot') return !!e.HUBSPOT_API_KEY;
+  if (e.CRM_PROVIDER === 'salesforce') return !!(e.SALESFORCE_INSTANCE_URL && e.SALESFORCE_ACCESS_TOKEN);
+  return false;
+}
+
+/** True when paid contact enrichment is enabled and a vendor key is present. */
+export function hasEnrichment(): boolean {
+  const e = env();
+  if (!e.ENABLE_PAID_ENRICHMENT) return false;
+  return !!(e.APOLLO_API_KEY || e.PDL_API_KEY);
+}
+
+/** True when S3 flat-file delivery is fully configured. */
+export function hasS3(): boolean {
+  const e = env();
+  return !!(e.S3_BUCKET && e.AWS_ACCESS_KEY_ID && e.AWS_SECRET_ACCESS_KEY);
 }

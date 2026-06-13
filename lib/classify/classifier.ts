@@ -4,6 +4,7 @@ import { SignalTypeSchema, type SignalType, type IcpDefinition, type SourceName 
 import { getModel, modelId, logLlmRun } from '@/lib/providers/llm';
 import { CLASSIFIER_SYSTEM, buildClassifierPrompt, PROMPT_VERSION } from './prompt';
 import { mockClassify, type RawClassResult } from './mock';
+import { stripDashes } from '@/lib/utils';
 
 export interface ClassifyInput {
   source: SourceName | string;
@@ -41,7 +42,7 @@ function finalize(raw: RawClassResult, input: ClassifyInput, model: string): Cla
     type: raw.type,
     strength: Math.round(strength * 100) / 100,
     matchedIcpIds,
-    justification: raw.justification.slice(0, 400),
+    justification: stripDashes(raw.justification.slice(0, 400)),
     model,
     promptVersion: PROMPT_VERSION,
   };

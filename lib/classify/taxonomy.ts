@@ -18,6 +18,13 @@ export const TAXONOMY: Record<SignalType, TaxonomyEntry> = {
     cues: ['raised', 'series ', 'seed round', 'funding', 'form d', 'reg d', 'offering', 'investment', 'led by', 'venture'],
     baseStrength: 0.72,
   },
+  incorporation: {
+    type: 'incorporation',
+    label: 'Incorporation',
+    description: 'A brand-new company was just formed or registered (a new incorporation, a new legal entity, a founder going out on their own, a stealth startup).',
+    cues: ['incorporated', 'incorporation', 'just registered', 'newly formed', 'launched a new company', 'stealth', 'building something new', 'started a company', 'new venture', 'founding', 'co-founded'],
+    baseStrength: 0.7,
+  },
   hiring: {
     type: 'hiring',
     label: 'Hiring',

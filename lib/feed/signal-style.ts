@@ -10,6 +10,7 @@ import {
   GitBranch,
   Newspaper,
   Handshake,
+  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import type { SignalType } from '@/lib/types';
@@ -27,6 +28,7 @@ export interface SignalStyle {
 // read on the warm light surface; tints stay light.
 export const SIGNAL_STYLE: Record<SignalType, SignalStyle> = {
   funding: { badge: 'bg-emerald-500/15 text-emerald-700', border: 'border-l-emerald-500/70', dot: 'bg-emerald-500', icon: Banknote },
+  incorporation: { badge: 'bg-lime-500/15 text-lime-700', border: 'border-l-lime-500/70', dot: 'bg-lime-600', icon: Sparkles },
   hiring: { badge: 'bg-sky-500/15 text-sky-700', border: 'border-l-sky-500/70', dot: 'bg-sky-500', icon: Users },
   product_launch: { badge: 'bg-violet-500/15 text-violet-700', border: 'border-l-violet-500/70', dot: 'bg-violet-500', icon: Rocket },
   buying_intent: { badge: 'bg-amber-500/20 text-amber-700', border: 'border-l-amber-500/70', dot: 'bg-amber-500', icon: Target },

@@ -34,3 +34,9 @@ export function relativeTime(input: Date | string | number | null | undefined): 
 export function truncate(s: string, n: number): string {
   return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
 }
+
+/** House style: no em or en dashes in displayed prose. Replace with a hyphen. */
+export function stripDashes(s: string): string {
+  // U+2014 em dash and U+2013 en dash become a plain hyphen.
+  return s.replace(/[\u2014\u2013]/g, '-');
+}

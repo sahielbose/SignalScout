@@ -24,6 +24,7 @@ const GTM_CUES =
 const PRIORITY: Record<SignalType, number> = {
   buying_intent: 6,
   funding: 6,
+  incorporation: 5,
   partnership: 5,
   product_launch: 5,
   expansion: 4,
@@ -38,6 +39,7 @@ const PRIORITY: Record<SignalType, number> = {
 // Web/unknown sources can be any of these; pick by cue match.
 const WEB_CANDIDATES: SignalType[] = [
   'funding',
+  'incorporation',
   'buying_intent',
   'product_launch',
   'partnership',

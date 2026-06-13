@@ -8,6 +8,7 @@ import { getModel, modelId, logLlmRun } from '@/lib/providers/llm';
 import { type Dossier, type Fact } from '@/lib/types';
 import { searchWeb, fetchPage, githubLookup, type GithubProfile } from './tools';
 import { enforceCitations, type GuardedDossier } from './dossier';
+import { stripDashes } from '@/lib/utils';
 
 const PROMPT_VERSION = 'dossier-v1';
 const GH_ATTRIBUTION_MIN = 0.5;
@@ -299,6 +300,12 @@ export async function generateDossier(input: DossierInput): Promise<DossierResul
 
   // 4) citation guard
   const guarded = enforceCitations(raw);
+
+  // house style: no em dashes in generated prose (cited snippets stay verbatim)
+  guarded.summary = guarded.summary ? stripDashes(guarded.summary) : guarded.summary;
+  guarded.why_they_care = stripDashes(guarded.why_they_care);
+  guarded.suggested_opener = stripDashes(guarded.suggested_opener);
+  guarded.tags = guarded.tags.map(stripDashes);
 
   // 5) persist (cache)
   if (personId) {

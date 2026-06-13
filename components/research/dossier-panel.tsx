@@ -1,8 +1,14 @@
+'use client';
+
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { ExternalLink, ShieldAlert, ShieldCheck, Quote, Sparkles, MessageSquare } from 'lucide-react';
+import { ExternalLink, ShieldAlert, ShieldCheck, Quote, Sparkles, MessageSquare, Users, Loader2, ArrowRight } from 'lucide-react';
 import type { GuardedDossier } from '@/lib/research/dossier';
 import type { Fact } from '@/lib/types';
+import { findSimilarAction, type SimilarActionResult } from '@/lib/research/actions';
+import { toast } from '@/lib/toast';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 function SourceLink({ url }: { url: string }) {
@@ -71,12 +77,92 @@ function FactList({ label, facts, index = 0 }: { label: string; facts?: Fact[]; 
   );
 }
 
+function SimilarPeople({ personId }: { personId: string }) {
+  const [res, setRes] = useState<SimilarActionResult | null>(null);
+  const [pending, start] = useTransition();
+
+  const run = () => {
+    setRes(null);
+    start(async () => {
+      const r = await findSimilarAction(personId);
+      setRes(r);
+      if (!r.ok) {
+        toast(r.error ?? 'Could not find similar people', 'error');
+      } else if (r.result && r.result.matches.length > 0) {
+        const n = r.result.matches.length;
+        toast(`Found ${n} similar ${n === 1 ? 'prospect' : 'prospects'}`, 'success');
+      } else {
+        toast(r.result?.note ?? 'No similar people found yet', 'default');
+      }
+    });
+  };
+
+  const matches = res?.ok ? res.result?.matches ?? [] : [];
+  const listId = res?.ok ? res.result?.listId ?? null : null;
+
+  return (
+    <div className="rounded-md border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
+            <Users className="size-3.5" /> Lookalike prospecting
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Find a few people at the same GitHub org or with a similar focus, collected into a Matches list.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={run} disabled={pending} className="shrink-0">
+          {pending ? <Loader2 className="animate-spin" /> : <Users />}
+          {pending ? 'Searching…' : 'Find similar people'}
+        </Button>
+      </div>
+
+      {res?.ok && matches.length > 0 && (
+        <div className="mt-3 animate-fade-up space-y-2">
+          <ul className="space-y-1.5">
+            {matches.map((m) => (
+              <li
+                key={m.personId}
+                className="flex items-baseline justify-between gap-3 border-b py-1.5 text-sm last:border-0"
+              >
+                <Link href={`/people/${m.personId}`} className="font-medium hover:text-primary hover:underline">
+                  {m.name}
+                </Link>
+                <span className="min-w-0 truncate text-right text-xs text-muted-foreground">
+                  {[m.role, m.company].filter(Boolean).join(' · ') || (m.githubLogin ? `@${m.githubLogin}` : '')}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {listId && (
+            <Link
+              href={`/lists/${listId}`}
+              className="inline-flex items-center gap-1 text-xs text-primary underline-offset-4 transition-colors hover:underline"
+            >
+              View the {res.result?.listName ?? 'Matches'} list
+              <ArrowRight className="size-3" />
+            </Link>
+          )}
+        </div>
+      )}
+
+      {res?.ok && matches.length === 0 && (
+        <p className="mt-3 animate-fade-up text-xs text-muted-foreground">
+          {res.result?.note ?? 'No similar people found yet.'}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function DossierPanel({
   dossier,
   meta,
+  personId,
 }: {
   dossier: GuardedDossier;
   meta?: { model?: string; cached?: boolean; toolCalls?: number };
+  personId?: string;
 }) {
   const { identity, structured, tags, sources } = dossier;
   const pct = Math.round((dossier.confidence ?? 0) * 100);
@@ -160,6 +246,9 @@ export function DossierPanel({
           <p className="mt-1.5 text-sm">{dossier.suggested_opener}</p>
         </div>
       </div>
+
+      {/* lookalike prospecting (only when we have a persisted person to anchor on) */}
+      {personId && <SimilarPeople personId={personId} />}
 
       {/* sources */}
       {sources.length > 0 && (

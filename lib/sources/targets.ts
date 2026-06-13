@@ -16,6 +16,52 @@ export const SAMPLE_ICP: { name: string; definition: IcpDefinition } = {
   },
 };
 
+/** Workflow presets the user can start from on the ICP page (one click to create). */
+export const PRESET_ICPS: { name: string; description: string; definition: IcpDefinition }[] = [
+  {
+    name: 'Incorporation prospecting',
+    description: 'Catch founders the moment a new company forms, then track early banking, payroll, and ML-infra intent.',
+    definition: {
+      industries: ['ai', 'fintech', 'developer tools', 'saas', 'infrastructure'],
+      titles: ['founder', 'co-founder', 'ceo', 'cto'],
+      companySize: '1-50',
+      keywords: ['incorporated', 'stealth', 'new company', 'banking', 'payroll', 'gpu', 'compute', 'ml infra', 'seed'],
+      geos: ['United States', 'Remote'],
+      signalTypes: ['incorporation', 'funding', 'hiring', 'product_launch'],
+      notify: { email: true, slack: false },
+      notifyThreshold: 0.6,
+    },
+  },
+  {
+    name: 'Enterprise account monitoring',
+    description: 'Track whole target accounts and watch buying signals emerge across their departments.',
+    definition: {
+      industries: ['enterprise', 'fintech', 'saas', 'infrastructure', 'developer tools'],
+      titles: ['vp', 'head of', 'director', 'staff', 'principal', 'platform', 'revenue operations'],
+      companySize: '1000+',
+      keywords: ['platform', 'migration', 'procurement', 'vendor', 'rollout', 'department', 'evaluating', 'rfp'],
+      geos: ['United States'],
+      signalTypes: ['buying_intent', 'expansion', 'hiring', 'partnership', 'product_launch'],
+      notify: { email: true, slack: true },
+      notifyThreshold: 0.7,
+    },
+  },
+  {
+    name: 'Conference prep',
+    description: 'Monitor event and meetup attendees, and prioritize the ones already showing interest in what you sell.',
+    definition: {
+      industries: ['developer tools', 'ai', 'saas', 'fintech'],
+      titles: ['founder', 'engineer', 'product', 'developer experience', 'gtm', 'growth'],
+      companySize: '11-500',
+      keywords: ['meetup', 'conference', 'summit', 'rsvp', 'speaker', 'attendee', 'devconf'],
+      geos: ['United States', 'Remote'],
+      signalTypes: ['event', 'thought_leadership', 'product_launch', 'github_release'],
+      notify: { email: true, slack: false },
+      notifyThreshold: 0.55,
+    },
+  },
+];
+
 /** A fast subset for onboarding (populate a feed in a few seconds). */
 export const QUICK_TARGETS: MonitoredSource[] = [
   { source: 'greenhouse', key: 'stripe' },

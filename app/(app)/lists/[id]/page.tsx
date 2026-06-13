@@ -4,6 +4,9 @@ import { Download, Trash2, Building2, User, ExternalLink, FileSearch, Check } fr
 import { requireOrgId } from '@/lib/auth/session';
 import { getList, getListMembers } from '@/lib/lists/service';
 import { removeMemberAction, renameListAction } from '@/lib/lists/actions';
+import { getCrmProvider } from '@/lib/providers/crm';
+import { hasCrm } from '@/lib/env';
+import { CrmPush } from '@/components/lists/crm-push';
 import { PageHeader } from '@/components/app/page-header';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +30,9 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
   if (!list) notFound();
   const members = await getListMembers(orgId, id);
   const hasPeople = members.some((m) => m.kind === 'person');
+  const peopleCount = members.filter((m) => m.kind === 'person').length;
+  const crmConfigured = hasCrm();
+  const crmProvider = getCrmProvider().name;
 
   return (
     <>
@@ -49,6 +55,13 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
             <Download className="size-4" /> Export CSV
           </a>
         </Button>
+        <CrmPush
+          listId={id}
+          listName={list.name}
+          peopleCount={peopleCount}
+          configured={crmConfigured}
+          provider={crmProvider}
+        />
       </PageHeader>
 
       <div className="mx-auto max-w-4xl space-y-3 p-6">

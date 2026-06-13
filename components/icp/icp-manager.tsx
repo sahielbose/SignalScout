@@ -1,14 +1,23 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Pencil, Trash2, Crosshair } from 'lucide-react';
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { Plus, Pencil, Trash2, Crosshair, Sparkles, Loader2 } from 'lucide-react';
 import type { IcpDefinition } from '@/lib/types';
 import { SIGNAL_TYPE_LABELS } from '@/lib/types';
+import { PRESET_ICPS } from '@/lib/sources/targets';
+import { toast } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { IcpForm } from './icp-form';
-import { createIcpAction, updateIcpAction, deleteIcpAction, toggleIcpAction } from '@/lib/icp/actions';
+import {
+  createIcpAction,
+  updateIcpAction,
+  deleteIcpAction,
+  toggleIcpAction,
+  createIcpFromPresetAction,
+} from '@/lib/icp/actions';
 
 export interface IcpView {
   id: string;
@@ -18,16 +27,70 @@ export interface IcpView {
 }
 
 export function IcpManager({ icps }: { icps: IcpView[] }) {
+  const router = useRouter();
   const [creating, setCreating] = useState(icps.length === 0);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [pendingPreset, setPendingPreset] = useState<string | null>(null);
+  const [, startPreset] = useTransition();
+
+  const usePreset = (name: string) =>
+    startPreset(async () => {
+      setPendingPreset(name);
+      try {
+        const r = await createIcpFromPresetAction(name);
+        if (r.ok) {
+          toast(`Preset added · ${name}`, 'success');
+          router.refresh();
+        } else {
+          toast(r.error ?? 'Could not add preset', 'error');
+        }
+      } finally {
+        setPendingPreset(null);
+      }
+    });
 
   return (
     <div className="mx-auto max-w-4xl space-y-5 p-6">
-      <div className="flex justify-end">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <Sparkles className="size-3.5 text-primary" /> Start from a preset
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {PRESET_ICPS.map((preset, i) => {
+              const busy = pendingPreset === preset.name;
+              return (
+                <Card
+                  key={preset.name}
+                  className="flex animate-fade-up flex-col gap-2 p-3"
+                  style={{ animationDelay: `${i * 50}ms` }}
+                >
+                  <div className="min-w-0">
+                    <h3 className="truncate text-sm font-medium">{preset.name}</h3>
+                    <p className="mt-1 line-clamp-3 text-xs text-muted-foreground">{preset.description}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-auto w-full text-xs"
+                    disabled={busy}
+                    onClick={() => usePreset(preset.name)}
+                  >
+                    {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+                    {busy ? 'Adding…' : 'Use preset'}
+                  </Button>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
         {!creating && (
-          <Button onClick={() => setCreating(true)}>
-            <Plus /> New ICP
-          </Button>
+          <div className="flex sm:items-start">
+            <Button onClick={() => setCreating(true)}>
+              <Plus /> New ICP
+            </Button>
+          </div>
         )}
       </div>
 

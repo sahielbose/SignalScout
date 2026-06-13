@@ -1,11 +1,11 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Building2, Users, ExternalLink } from 'lucide-react';
+import { Users, ExternalLink } from 'lucide-react';
 import { requireOrgId } from '@/lib/auth/session';
 import { getCompanyProfile } from '@/lib/companies/queries';
 import { SIGNAL_TYPE_LABELS, SOURCE_LABELS, type SignalType, type SourceName } from '@/lib/types';
 import { styleFor } from '@/lib/feed/signal-style';
 import { PageHeader } from '@/components/app/page-header';
+import { OrgTree } from '@/components/companies/org-tree';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn, relativeTime } from '@/lib/utils';
@@ -17,7 +17,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const profile = await getCompanyProfile(orgId, id);
   if (!profile) notFound();
-  const { company, timeline, byType, departments } = profile;
+  const { company, timeline, byType, people } = profile;
 
   return (
     <>
@@ -80,37 +80,10 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
         {/* people / org tree */}
         <div>
           <h2 className="mb-3 flex animate-fade-in items-center gap-1.5 text-sm font-semibold">
-            <Users className="size-4" /> People
+            <Users className="size-4" /> Org chart
+            {people.length > 0 && <Badge variant="secondary">{people.length}</Badge>}
           </h2>
-          {departments.length === 0 ? (
-            <Card className="animate-scale-in p-6 text-center text-xs text-muted-foreground">
-              No people associated yet. Research a person to populate the org view.
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {departments.map((d, i) => (
-                <Card
-                  key={d.name}
-                  className="animate-fade-up p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                  style={{ animationDelay: `${i * 50}ms` }}
-                >
-                  <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                    <Building2 className="size-3" /> {d.name}
-                  </div>
-                  <ul className="space-y-1">
-                    {d.people.map((p) => (
-                      <li key={p.id} className="text-sm">
-                        <Link href={`/people/${p.id}`} className="hover:text-primary hover:underline">
-                          {p.name}
-                        </Link>
-                        {p.title && <span className="text-xs text-muted-foreground"> · {p.title}</span>}
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              ))}
-            </div>
-          )}
+          <OrgTree people={people} />
         </div>
       </div>
     </>

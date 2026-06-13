@@ -1,10 +1,13 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
+import { requireOrgId } from '@/lib/auth/session';
 import { normalizeLinkedinUrl } from '@/lib/entity/normalize';
 import { getByoKey } from '@/lib/users/service';
 import { enforceQuota, QuotaError } from '@/lib/quota/service';
 import { generateDossier, type DossierResult } from './agent';
+import { findSimilarPeople, type SimilarResult } from './similar';
 
 export interface ResearchActionResult {
   ok: boolean;
@@ -68,6 +71,39 @@ export async function researchAction(input: {
       llmApiKey: byoKey,
       force: input.force,
     });
+    return { ok: true, result };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
+  }
+}
+
+export interface SimilarActionResult {
+  ok: boolean;
+  error?: string;
+  result?: SimilarResult;
+}
+
+/**
+ * Find lookalike prospects for a person (same github org or similar focus),
+ * collect them into a per-person "Matches" list, and return the matches.
+ * Org-scoped via requireOrgId; degrades gracefully (never throws) when there is
+ * no GitHub signal or no token.
+ */
+export async function findSimilarAction(personId: string): Promise<SimilarActionResult> {
+  const id = personId?.trim();
+  if (!id) return { ok: false, error: 'Missing person.' };
+
+  let orgId: string;
+  try {
+    orgId = await requireOrgId();
+  } catch {
+    return { ok: false, error: 'Not signed in.' };
+  }
+
+  try {
+    const result = await findSimilarPeople(orgId, id);
+    revalidatePath(`/people/${id}`);
+    if (result.listId) revalidatePath('/lists');
     return { ok: true, result };
   } catch (err) {
     return { ok: false, error: (err as Error).message };

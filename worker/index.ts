@@ -14,6 +14,7 @@ import { classifyPendingSignals } from '@/lib/pipeline/classify';
 import { dispatchSignalNotifications } from '@/lib/delivery/dispatch';
 import { getFeed } from '@/lib/feed/queries';
 import { renderDigest, sendEmail, type DigestSignal } from '@/lib/delivery/email';
+import { runScheduledCsvDelivery } from '@/lib/delivery/scheduled';
 import { DEFAULT_TARGETS } from '@/lib/sources/targets';
 import { env } from '@/lib/env';
 
@@ -74,6 +75,7 @@ async function main() {
 
   await boss.createQueue('ingest');
   await boss.createQueue('digest');
+  await boss.createQueue('scheduled-csv');
 
   await boss.work('ingest', async () => {
     await ingestJob();
@@ -81,15 +83,20 @@ async function main() {
   await boss.work('digest', async () => {
     await digestJob();
   });
+  await boss.work('scheduled-csv', async () => {
+    const r = await runScheduledCsvDelivery();
+    log(`scheduled-csv: enabled=${r.enabled} orgs=${r.orgs} delivered=${r.delivered.length}`);
+  });
 
   // schedules (cron, UTC)
   await boss.schedule('ingest', '*/30 * * * *');
   await boss.schedule('digest', '0 13 * * *');
+  await boss.schedule('scheduled-csv', '30 13 * * *');
 
   // run an ingest once on startup
   await boss.send('ingest', {});
 
-  log('worker started - ingest every 30m, digest daily 13:00 UTC');
+  log('worker started - ingest every 30m, digest daily 13:00 UTC, scheduled-csv daily 13:30 UTC');
 }
 
 main().catch((err) => {

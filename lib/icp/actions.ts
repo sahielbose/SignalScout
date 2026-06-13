@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { requireOrgId } from '@/lib/auth/session';
 import { SignalTypeSchema, type IcpDefinition, type SignalType } from '@/lib/types';
+import { PRESET_ICPS } from '@/lib/sources/targets';
 import { createIcp, updateIcp, deleteIcp, setIcpActive } from './service';
 
 function parseList(v: FormDataEntryValue | null): string[] {
@@ -64,4 +65,16 @@ export async function toggleIcpAction(form: FormData) {
   const active = form.get('active') === 'true';
   if (id) await setIcpActive(orgId, id, !active);
   revalidatePath('/icps');
+}
+
+export async function createIcpFromPresetAction(
+  name: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const orgId = await requireOrgId();
+  const preset = PRESET_ICPS.find((p) => p.name === name);
+  if (!preset) return { ok: false, error: 'Unknown preset' };
+  await createIcp(orgId, preset.name, preset.definition);
+  revalidatePath('/feed');
+  revalidatePath('/icps');
+  return { ok: true };
 }

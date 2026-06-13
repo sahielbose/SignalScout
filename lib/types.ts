@@ -3,6 +3,7 @@ import { z } from 'zod';
 // ───────────────────────── signal taxonomy ─────────────────────────
 export const SIGNAL_TYPES = [
   'funding',
+  'incorporation',
   'hiring',
   'product_launch',
   'buying_intent',
@@ -125,6 +126,7 @@ export type DossierSource = { claim: string; url: string; snippet: string };
 // ───────────────────────── pretty labels ───────────────────────────
 export const SIGNAL_TYPE_LABELS: Record<SignalType, string> = {
   funding: 'Funding',
+  incorporation: 'Incorporation',
   hiring: 'Hiring',
   product_launch: 'Product Launch',
   buying_intent: 'Buying Intent',
