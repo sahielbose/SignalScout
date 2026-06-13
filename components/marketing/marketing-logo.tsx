@@ -5,7 +5,7 @@ export function MarketingLogoTile({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        'grid size-7 shrink-0 place-items-center rounded-[0.55rem] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]',
+        'grid size-7 shrink-0 place-items-center rounded-[0.55rem] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] transition-all duration-200 group-hover:scale-105 group-hover:shadow-md',
         className,
       )}
       aria-hidden

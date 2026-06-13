@@ -13,7 +13,7 @@ export interface FilterOption {
 }
 
 const selectCls =
-  'h-8 rounded-md border border-input bg-background px-2 text-xs font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+  'h-8 cursor-pointer rounded-md border border-input bg-background px-2 text-xs font-medium text-foreground transition-colors duration-200 hover:border-ring/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 export function FilterBar({ options }: { options: FilterOption }) {
   const router = useRouter();
@@ -81,7 +81,7 @@ export function FilterBar({ options }: { options: FilterOption }) {
       {active && (
         <button
           onClick={() => router.replace(pathname, { scroll: false })}
-          className={cn('inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground')}
+          className={cn('inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors duration-200 hover:text-foreground active:scale-[0.98]')}
         >
           <X className="size-3" /> Clear
         </button>

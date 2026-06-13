@@ -19,7 +19,16 @@ export function CostChart({ data }: { data: { day: string; cost: number; calls: 
           labelStyle={{ color: 'hsl(var(--foreground))' }}
           formatter={(v: number, name: string) => (name === 'cost' ? [`$${v}`, 'cost'] : [v, name])}
         />
-        <Area type="monotone" dataKey="cost" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#costFill)" />
+        <Area
+          type="monotone"
+          dataKey="cost"
+          stroke="hsl(var(--primary))"
+          strokeWidth={2}
+          fill="url(#costFill)"
+          isAnimationActive
+          animationDuration={500}
+          animationEasing="ease-out"
+        />
       </AreaChart>
     </ResponsiveContainer>
   );

@@ -20,12 +20,12 @@ export function TypeBadge({
 }) {
   const tones: Record<Tone, string> = {
     soft: 'bg-[hsl(var(--chip-bg))] text-[hsl(var(--chip-fg))]',
-    solid: 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]',
+    solid: 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] hover:-translate-y-0.5 hover:shadow-md',
   };
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+        'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition-all duration-200',
         tones[tone],
         className,
       )}

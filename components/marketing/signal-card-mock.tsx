@@ -58,7 +58,7 @@ export function SignalCardMock({ card }: { card: FeedCard }) {
   if (card.kind === 'source') {
     const Icon = sourceIcons[card.icon ?? 'globe'];
     return (
-      <article className="rounded-xl border border-border bg-[hsl(var(--card))] p-4 shadow-sm">
+      <article className="rounded-xl border border-border bg-[hsl(var(--card))] p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:shadow-md">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2 font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
             <Icon className="size-3.5 shrink-0" />
@@ -75,7 +75,7 @@ export function SignalCardMock({ card }: { card: FeedCard }) {
 
   if (card.kind === 'update') {
     return (
-      <article className="rounded-xl border border-border bg-[hsl(var(--card))] p-4 shadow-sm">
+      <article className="rounded-xl border border-border bg-[hsl(var(--card))] p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:shadow-md">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
             <span className="grid size-5 place-items-center rounded-md bg-[hsl(var(--muted))]">
@@ -91,7 +91,7 @@ export function SignalCardMock({ card }: { card: FeedCard }) {
   }
 
   return (
-    <article className="rounded-xl border border-border bg-[hsl(var(--card))] p-4 shadow-sm">
+    <article className="rounded-xl border border-border bg-[hsl(var(--card))] p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:shadow-md">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[hsl(var(--muted))] text-[11px] font-semibold text-[hsl(var(--foreground))]">

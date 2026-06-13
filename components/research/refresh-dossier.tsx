@@ -35,8 +35,18 @@ export function RefreshDossier({
     });
 
   return (
-    <Button variant={hasDossier ? 'outline' : 'default'} size="sm" onClick={run} disabled={pending}>
-      {hasDossier ? <RefreshCw className={pending ? 'animate-spin' : ''} /> : <FileSearch />}
+    <Button
+      variant={hasDossier ? 'outline' : 'default'}
+      size="sm"
+      onClick={run}
+      disabled={pending}
+      className="group hover:shadow-md"
+    >
+      {hasDossier ? (
+        <RefreshCw className={pending ? 'animate-spin' : 'transition-transform duration-300 group-hover:rotate-90'} />
+      ) : (
+        <FileSearch />
+      )}
       {pending ? 'Researching…' : hasDossier ? 'Refresh dossier' : 'Run deep research'}
     </Button>
   );

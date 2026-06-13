@@ -32,15 +32,19 @@ export function ResearchTrace() {
   return (
     <div className="rounded-xl border border-border bg-[hsl(var(--card))] p-5">
       <div className="flex items-center gap-2">
-        <span className="size-1.5 rounded-full bg-[hsl(var(--terracotta))]" />
+        <span className="size-1.5 animate-pulse rounded-full bg-[hsl(var(--terracotta))]" />
         <span className="font-mono text-[11px] uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
           SignalScout deep research
         </span>
       </div>
 
       <div className="mt-4 space-y-2">
-        {sources.map((s) => (
-          <div key={s.url} className="rounded-lg border border-border bg-[hsl(var(--background))] px-3 py-2">
+        {sources.map((s, i) => (
+          <div
+            key={s.url}
+            style={{ animationDelay: `${i * 50}ms` }}
+            className="animate-fade-up rounded-lg border border-border bg-[hsl(var(--background))] px-3 py-2 transition-colors hover:border-[hsl(var(--accent))]"
+          >
             <p className="flex items-center gap-1.5 font-mono text-xs text-[hsl(var(--foreground))]">
               <Globe className="size-3 text-[hsl(var(--muted-foreground))]" />
               {s.url}
@@ -65,8 +69,12 @@ export function ResearchTrace() {
       </div>
 
       <div className="mt-4 space-y-2">
-        {people.map(([n, r]) => (
-          <div key={n} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
+        {people.map(([n, r], i) => (
+          <div
+            key={n}
+            style={{ animationDelay: `${i * 50}ms` }}
+            className="flex animate-fade-up items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 transition-colors hover:border-[hsl(var(--accent))]"
+          >
             <div className="flex min-w-0 items-center gap-2">
               <span className="grid size-6 shrink-0 place-items-center rounded-full bg-[hsl(var(--muted))] text-[10px] font-semibold">
                 {inits(n)}

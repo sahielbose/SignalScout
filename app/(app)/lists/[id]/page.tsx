@@ -30,13 +30,17 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
 
       <div className="mx-auto max-w-4xl p-6">
         {members.length === 0 ? (
-          <Card className="p-10 text-center text-sm text-muted-foreground">
+          <Card className="animate-scale-in p-10 text-center text-sm text-muted-foreground">
             Empty list. Use “Add to list” on a signal, or add a researched person.
           </Card>
         ) : (
-          <Card className="divide-y">
-            {members.map((m) => (
-              <div key={m.memberId} className="flex items-center gap-3 p-3">
+          <Card className="animate-fade-up divide-y">
+            {members.map((m, i) => (
+              <div
+                key={m.memberId}
+                className="flex animate-fade-up items-center gap-3 p-3 transition-colors hover:bg-accent/40"
+                style={{ animationDelay: `${i * 50}ms` }}
+              >
                 <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
                   {m.kind === 'person' ? <User className="size-4" /> : <Building2 className="size-4" />}
                 </div>

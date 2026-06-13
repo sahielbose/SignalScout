@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { ApiKeys } from '@/components/integrations/api-keys';
 import { Webhooks } from '@/components/integrations/webhooks';
 import { CopyBlock } from '@/components/integrations/copy-block';
+import { Reveal } from '@/components/ui/reveal';
 
 export const metadata = { title: 'Integrations - Signal Scout' };
 export const dynamic = 'force-dynamic';
@@ -20,14 +21,17 @@ export default async function IntegrationsPage() {
     <>
       <PageHeader title="Integrations" description="Programmatic access - REST API keys, with MCP and webhooks alongside." />
       <div className="mx-auto max-w-3xl space-y-6 p-6">
-        <Card className="p-5">
-          <h2 className="text-sm font-semibold">API keys</h2>
-          <p className="mb-4 mt-1 text-xs text-muted-foreground">
-            Keys are hashed at rest - only the prefix is stored. Send as <code>Authorization: Bearer …</code>.
-          </p>
-          <ApiKeys keys={keys} />
-        </Card>
+        <Reveal>
+          <Card className="p-5">
+            <h2 className="text-sm font-semibold">API keys</h2>
+            <p className="mb-4 mt-1 text-xs text-muted-foreground">
+              Keys are hashed at rest - only the prefix is stored. Send as <code>Authorization: Bearer …</code>.
+            </p>
+            <ApiKeys keys={keys} />
+          </Card>
+        </Reveal>
 
+        <Reveal delay={80}>
         <Card className="p-5">
           <h2 className="text-sm font-semibold">REST API</h2>
           <p className="mb-3 mt-1 text-xs text-muted-foreground">All endpoints are scoped to your org and accept a bearer key.</p>
@@ -50,7 +54,9 @@ curl -H "Authorization: Bearer \$SSK" \\
   "${base}/api/lists/<list-id>/export.csv"`}
           </pre>
         </Card>
+        </Reveal>
 
+        <Reveal delay={160}>
         <Card className="p-5">
           <h2 className="text-sm font-semibold">Outbound webhooks</h2>
           <p className="mb-4 mt-1 text-xs text-muted-foreground">
@@ -58,7 +64,9 @@ curl -H "Authorization: Bearer \$SSK" \\
           </p>
           <Webhooks webhooks={hooks.map((w) => ({ id: w.id, url: w.url, events: w.events, active: w.active }))} />
         </Card>
+        </Reveal>
 
+        <Reveal delay={240}>
         <Card className="space-y-4 p-5">
           <div>
             <h2 className="text-sm font-semibold">MCP server</h2>
@@ -92,6 +100,7 @@ curl -H "Authorization: Bearer \$SSK" \\
 }`}
           />
         </Card>
+        </Reveal>
       </div>
     </>
   );

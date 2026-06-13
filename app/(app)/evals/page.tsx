@@ -20,7 +20,7 @@ export default async function EvalsPage() {
     <>
       <PageHeader title="Metrics" description="Classification eval scores and model spend - the trust + cost layer at a glance." />
       <div className="mx-auto max-w-4xl space-y-5 p-6">
-        <Card className="p-5">
+        <Card className="animate-fade-up p-5 transition-shadow duration-200 hover:shadow-md">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">Classification eval</h2>
             <span className={cn('text-xs font-medium', report.accuracy >= 0.8 ? 'text-primary' : 'text-destructive')}>
@@ -39,8 +39,12 @@ export default async function EvalsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {report.perType.map((t) => (
-                  <tr key={t.type}>
+                {report.perType.map((t, i) => (
+                  <tr
+                    key={t.type}
+                    className="animate-fade-up transition-colors hover:bg-muted/30"
+                    style={{ animationDelay: `${i * 50}ms` }}
+                  >
                     <td className="px-3 py-1.5">{SIGNAL_TYPE_LABELS[t.type as SignalType] ?? t.type}</td>
                     <td className="px-3 py-1.5 text-right font-mono text-xs">{t.support}</td>
                     <td className="px-3 py-1.5 text-right font-mono text-xs">{t.precision.toFixed(2)}</td>
@@ -57,7 +61,7 @@ export default async function EvalsPage() {
           </p>
         </Card>
 
-        <Card className="p-5">
+        <Card className="animate-fade-up p-5 transition-shadow duration-200 hover:shadow-md" style={{ animationDelay: '80ms' }}>
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">Model spend (14 days)</h2>
             <span className="text-xs text-muted-foreground">${totalCost.toFixed(4)} · {totalCalls} calls all-time</span>
@@ -66,8 +70,12 @@ export default async function EvalsPage() {
             <CostChart data={series} />
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            {byKind.map((k) => (
-              <span key={k.kind} className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
+            {byKind.map((k, i) => (
+              <span
+                key={k.kind}
+                className="animate-pop rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted/70"
+                style={{ animationDelay: `${i * 50}ms` }}
+              >
                 {k.kind}: {k.calls} calls · ${k.cost.toFixed(4)}
               </span>
             ))}

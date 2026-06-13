@@ -2,6 +2,7 @@ import { requireOrgId } from '@/lib/auth/session';
 import { listIcps } from '@/lib/icp/service';
 import { PageHeader } from '@/components/app/page-header';
 import { IcpManager, type IcpView } from '@/components/icp/icp-manager';
+import { Reveal } from '@/components/ui/reveal';
 
 export const metadata = { title: 'ICPs - Signal Scout' };
 export const dynamic = 'force-dynamic';
@@ -22,7 +23,9 @@ export default async function IcpsPage() {
         title="Ideal Customer Profiles"
         description="Describe who you sell to. The feed filters public signals to these profiles, and the worker only deep-researches people who match."
       />
-      <IcpManager icps={icps} />
+      <Reveal>
+        <IcpManager icps={icps} />
+      </Reveal>
     </>
   );
 }

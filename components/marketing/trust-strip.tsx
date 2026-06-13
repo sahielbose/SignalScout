@@ -11,9 +11,13 @@ export function TrustStrip() {
   return (
     <section className="border-b border-border">
       <div className="mx-auto grid max-w-6xl gap-6 px-6 py-10 sm:grid-cols-2 lg:grid-cols-4">
-        {items.map((it) => (
-          <div key={it.label}>
-            <it.icon className="size-5 text-[hsl(var(--accent))]" />
+        {items.map((it, i) => (
+          <div
+            key={it.label}
+            style={{ animationDelay: `${i * 50}ms` }}
+            className="group animate-fade-up"
+          >
+            <it.icon className="size-5 text-[hsl(var(--accent))] transition-transform duration-200 group-hover:scale-110" />
             <p className="mt-3 text-sm font-semibold">{it.label}</p>
             <p className="mt-1 text-xs leading-relaxed text-[hsl(var(--muted-foreground))]">{it.note}</p>
           </div>

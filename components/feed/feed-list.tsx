@@ -1,12 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Loader2, Radar } from 'lucide-react';
+import { Radar } from 'lucide-react';
 import type { FeedItem } from '@/lib/feed/queries';
 import { SignalCard } from './signal-card';
 import { toast } from '@/lib/toast';
 import { addToListAction } from '@/lib/lists/actions';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function FeedList({
   initialItems,
@@ -79,8 +80,8 @@ export function FeedList({
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto max-w-md py-20 text-center">
-        <Radar className="mx-auto size-8 text-muted-foreground" />
+      <div className="mx-auto max-w-md animate-fade-up py-20 text-center">
+        <Radar className="mx-auto size-8 animate-pulse-ring text-muted-foreground" />
         <p className="mt-3 text-sm text-muted-foreground">
           No signals match these filters yet. Define an ICP and let the worker ingest sources, or relax the filters.
         </p>
@@ -91,15 +92,27 @@ export function FeedList({
   return (
     <div className="mx-auto max-w-3xl space-y-3 p-6">
       <p className="text-xs text-muted-foreground">{total} matched signal{total === 1 ? '' : 's'}</p>
-      {items.map((item) => (
-        <SignalCard key={item.id} item={item} onAddToList={onAddToList} />
+      {items.map((item, i) => (
+        <div
+          key={item.id}
+          className="animate-fade-up"
+          style={{ animationDelay: `${Math.min(i, 12) * 50}ms` }}
+        >
+          <SignalCard item={item} onAddToList={onAddToList} />
+        </div>
       ))}
       <div ref={sentinel} className="h-1" />
-      {hasMore && (
+      {loading && (
+        <div className="space-y-3" aria-hidden>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-36 w-full rounded-lg" />
+          ))}
+        </div>
+      )}
+      {hasMore && !loading && (
         <div className="flex justify-center py-4">
-          <Button variant="outline" size="sm" onClick={loadMore} disabled={loading}>
-            {loading ? <Loader2 className="size-4 animate-spin" /> : null}
-            {loading ? 'Loading' : 'Load more'}
+          <Button variant="outline" size="sm" onClick={loadMore}>
+            Load more
           </Button>
         </div>
       )}

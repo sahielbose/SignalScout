@@ -12,9 +12,13 @@ const links = [
 
 export function MarketingNav() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-[hsl(var(--background)/0.82)] backdrop-blur">
+    <header className="sticky top-0 z-40 animate-fade-down border-b border-border bg-[hsl(var(--background)/0.82)] backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center" aria-label="SignalScout home">
+        <Link
+          href="/"
+          className="group flex items-center rounded-md transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))]"
+          aria-label="SignalScout home"
+        >
           <MarketingLogo />
         </Link>
         <nav className="hidden items-center gap-7 md:flex">
@@ -22,9 +26,10 @@ export function MarketingNav() {
             <Link
               key={l.href}
               href={l.href}
-              className="text-xs font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))] transition-colors hover:text-[hsl(var(--foreground))]"
+              className="group relative text-xs font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))] transition-colors hover:text-[hsl(var(--foreground))]"
             >
               {l.label}
+              <span className="absolute -bottom-1 left-0 h-px w-full origin-left scale-x-0 bg-[hsl(var(--foreground))] transition-transform duration-200 group-hover:scale-x-100" />
             </Link>
           ))}
         </nav>

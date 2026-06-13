@@ -62,13 +62,15 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="flex h-full flex-col">
-      <FilterBar
-        options={{
-          icps: icpRows.map((i) => ({ id: i.id, name: i.name })),
-          types: facets.types,
-          sources: facets.sources,
-        }}
-      />
+      <div className="animate-fade-down">
+        <FilterBar
+          options={{
+            icps: icpRows.map((i) => ({ id: i.id, name: i.name })),
+            types: facets.types,
+            sources: facets.sources,
+          }}
+        />
+      </div>
       <div className="flex-1">
         <FeedList key={query} initialItems={items} initialHasMore={hasMore} query={query} total={total} />
       </div>

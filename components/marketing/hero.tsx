@@ -10,15 +10,21 @@ export function Hero() {
       <WorldDots className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[700px] w-full" />
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 pb-16 pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10 lg:pb-24 lg:pt-24">
         <div>
-          <h1 className="text-balance text-[clamp(2.6rem,5.4vw,4.25rem)] font-semibold leading-[1.04] tracking-tight">
+          <h1 className="animate-fade-up text-balance text-[clamp(2.6rem,5.4vw,4.25rem)] font-semibold leading-[1.04] tracking-tight">
             Catch the buying signal the moment it goes public.
           </h1>
-          <p className="mt-6 max-w-lg text-lg text-[hsl(var(--muted-foreground))]">
+          <p
+            className="animate-fade-up mt-6 max-w-lg text-lg text-[hsl(var(--muted-foreground))]"
+            style={{ animationDelay: '90ms' }}
+          >
             SignalScout watches free public sources for the moments that show a company is ready to buy, like raising
             money, hiring sales roles, or launching a product. You tell it who your customers are, and it gives you a
             live feed of those moments plus a researched, source-backed profile of the people behind them.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div
+            className="animate-fade-up mt-8 flex flex-wrap items-center gap-3"
+            style={{ animationDelay: '180ms' }}
+          >
             <Button asChild size="lg">
               <Link href="/login">
                 Get started <ArrowRight />
@@ -29,7 +35,7 @@ export function Hero() {
             </Button>
           </div>
         </div>
-        <div>
+        <div className="animate-fade-up" style={{ animationDelay: '270ms' }}>
           <SignalFeedMock />
         </div>
       </div>

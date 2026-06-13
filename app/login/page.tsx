@@ -19,10 +19,10 @@ export default async function LoginPage() {
     <main className="theme-warm grid min-h-screen font-sans lg:grid-cols-2">
       <section className="relative hidden flex-col justify-between overflow-hidden border-r border-border p-10 lg:flex">
         <div className="paper-dots pointer-events-none absolute inset-0 -z-10" />
-        <Link href="/">
+        <Link href="/" className="animate-fade-up" style={{ animationDelay: '0ms' }}>
           <MarketingLogo />
         </Link>
-        <div className="max-w-md">
+        <div className="max-w-md animate-fade-up" style={{ animationDelay: '80ms' }}>
           <h2 className="text-3xl font-semibold tracking-tight">
             Catch the signal before your competitors hear the noise.
           </h2>
@@ -31,13 +31,13 @@ export default async function LoginPage() {
             cited dossier on the person to reach.
           </p>
         </div>
-        <p className="text-xs text-[hsl(var(--muted-foreground))]">
+        <p className="animate-fade-up text-xs text-[hsl(var(--muted-foreground))]" style={{ animationDelay: '160ms' }}>
           Free, open source, built on public data. No LinkedIn scraping.
         </p>
       </section>
 
       <section className="flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm animate-scale-in">
           <div className="mb-8 lg:hidden">
             <Link href="/">
               <MarketingLogo />

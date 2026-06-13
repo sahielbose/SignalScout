@@ -25,10 +25,13 @@ function SourceLink({ url }: { url: string }) {
   );
 }
 
-function FactRow({ label, fact }: { label: string; fact?: Fact }) {
+function FactRow({ label, fact, index = 0 }: { label: string; fact?: Fact; index?: number }) {
   if (!fact) return null;
   return (
-    <div className="flex flex-col gap-1 border-b py-2.5 last:border-0 sm:flex-row sm:items-baseline sm:gap-3">
+    <div
+      className="flex animate-fade-up flex-col gap-1 border-b py-2.5 last:border-0 sm:flex-row sm:items-baseline sm:gap-3"
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
       <div className="w-32 shrink-0 text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="min-w-0 flex-1">
         <span className="text-sm">{fact.value}</span>
@@ -40,10 +43,13 @@ function FactRow({ label, fact }: { label: string; fact?: Fact }) {
   );
 }
 
-function FactList({ label, facts }: { label: string; facts?: Fact[] }) {
+function FactList({ label, facts, index = 0 }: { label: string; facts?: Fact[]; index?: number }) {
   if (!facts || facts.length === 0) return null;
   return (
-    <div className="flex flex-col gap-1 border-b py-2.5 last:border-0 sm:flex-row sm:gap-3">
+    <div
+      className="flex animate-fade-up flex-col gap-1 border-b py-2.5 last:border-0 sm:flex-row sm:gap-3"
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
       <div className="w-32 shrink-0 text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="flex flex-1 flex-wrap gap-1.5">
         {facts.map((f, i) => (
@@ -52,7 +58,8 @@ function FactList({ label, facts }: { label: string; facts?: Fact[] }) {
             href={f.source_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 rounded-full border bg-muted/40 px-2.5 py-0.5 text-xs hover:border-primary/40 hover:text-primary"
+            className="inline-flex animate-scale-in items-center gap-1 rounded-full border bg-muted/40 px-2.5 py-0.5 text-xs transition-colors hover:border-primary/40 hover:text-primary"
+            style={{ animationDelay: `${i * 40}ms` }}
             title={f.snippet}
           >
             {f.value}
@@ -76,9 +83,9 @@ export function DossierPanel({
   const hasFacts = sources.length > 0;
 
   return (
-    <div className="space-y-5">
+    <div className="animate-scale-in space-y-5">
       {/* identity header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex animate-fade-down flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">{identity.full_name}</h2>
           <p className="text-sm text-muted-foreground">
@@ -86,17 +93,17 @@ export function DossierPanel({
           </p>
           {tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {tags.map((t) => (
-                <Badge key={t} variant="secondary">
-                  {t}
-                </Badge>
+              {tags.map((t, i) => (
+                <span key={t} className="inline-flex animate-pop" style={{ animationDelay: `${i * 50}ms` }}>
+                  <Badge variant="secondary">{t}</Badge>
+                </span>
               ))}
             </div>
           )}
         </div>
         <div
           className={cn(
-            'flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium',
+            'flex animate-pop items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium',
             dossier.lowConfidence ? 'border-amber-500/30 text-amber-400' : 'border-primary/30 text-primary',
           )}
           title={`${sources.length} cited fact(s)`}
@@ -124,13 +131,13 @@ export function DossierPanel({
       {/* structured cited facts */}
       {hasFacts ? (
         <div className="rounded-md border bg-card px-4">
-          <FactRow label="Role" fact={structured.role} />
-          <FactRow label="Company" fact={structured.company} />
-          <FactRow label="GitHub" fact={structured.github_contributions} />
-          <FactRow label="Focus" fact={structured.focus} />
-          <FactList label="Talks" facts={structured.talks} />
-          <FactList label="Publications" facts={structured.publications} />
-          <FactList label="Starred" facts={structured.starred_repos} />
+          <FactRow label="Role" fact={structured.role} index={0} />
+          <FactRow label="Company" fact={structured.company} index={1} />
+          <FactRow label="GitHub" fact={structured.github_contributions} index={2} />
+          <FactRow label="Focus" fact={structured.focus} index={3} />
+          <FactList label="Talks" facts={structured.talks} index={4} />
+          <FactList label="Publications" facts={structured.publications} index={5} />
+          <FactList label="Starred" facts={structured.starred_repos} index={6} />
         </div>
       ) : (
         <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
@@ -140,13 +147,13 @@ export function DossierPanel({
 
       {/* outreach */}
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-md border bg-card p-4">
+        <div className="rounded-md border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
             <Sparkles className="size-3.5" /> Why they&apos;d care
           </div>
           <p className="mt-1.5 text-sm">{dossier.why_they_care}</p>
         </div>
-        <div className="rounded-md border bg-card p-4">
+        <div className="rounded-md border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex items-center gap-1.5 text-xs font-medium text-beacon">
             <MessageSquare className="size-3.5" /> Suggested opener
           </div>
@@ -162,7 +169,7 @@ export function DossierPanel({
           </h3>
           <ol className="space-y-1.5">
             {sources.map((s, i) => (
-              <li key={i} className="flex gap-2 text-xs">
+              <li key={i} className="flex animate-fade-up gap-2 text-xs" style={{ animationDelay: `${i * 40}ms` }}>
                 <span className="text-muted-foreground">{i + 1}.</span>
                 <div className="min-w-0">
                   <span className="text-foreground">{s.claim}</span> <SourceLink url={s.url} />

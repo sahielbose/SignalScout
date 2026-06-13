@@ -32,7 +32,7 @@ export function IcpManager({ icps }: { icps: IcpView[] }) {
       </div>
 
       {creating && (
-        <Card className="p-5">
+        <Card className="animate-scale-in p-5">
           <h2 className="mb-4 text-sm font-semibold">Define an ideal customer profile</h2>
           <IcpForm
             action={async (fd) => {
@@ -46,7 +46,7 @@ export function IcpManager({ icps }: { icps: IcpView[] }) {
       )}
 
       {icps.length === 0 && !creating && (
-        <Card className="flex flex-col items-center gap-3 p-12 text-center">
+        <Card className="flex animate-scale-in flex-col items-center gap-3 p-12 text-center">
           <Crosshair className="size-8 text-primary" />
           <p className="text-sm text-muted-foreground">No ICPs yet. Define who you sell to so the feed can filter to them.</p>
           <Button onClick={() => setCreating(true)}>
@@ -56,9 +56,9 @@ export function IcpManager({ icps }: { icps: IcpView[] }) {
       )}
 
       <div className="space-y-3">
-        {icps.map((icp) =>
+        {icps.map((icp, i) =>
           editingId === icp.id ? (
-            <Card key={icp.id} className="p-5">
+            <Card key={icp.id} className="animate-scale-in p-5">
               <h2 className="mb-4 text-sm font-semibold">Edit ICP</h2>
               <IcpForm
                 action={async (fd) => {
@@ -70,7 +70,11 @@ export function IcpManager({ icps }: { icps: IcpView[] }) {
               />
             </Card>
           ) : (
-            <Card key={icp.id} className="p-5">
+            <Card
+              key={icp.id}
+              className="animate-fade-up p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+              style={{ animationDelay: `${i * 50}ms` }}
+            >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">

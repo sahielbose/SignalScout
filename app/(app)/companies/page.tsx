@@ -18,11 +18,16 @@ export default async function CompaniesPage() {
       <PageHeader title="Companies" description="Every company with tracked public signals - open one for its timeline and org view." />
       <div className="mx-auto max-w-3xl p-6">
         {companies.length === 0 ? (
-          <Card className="p-10 text-center text-sm text-muted-foreground">No companies with signals yet. Run the worker to ingest sources.</Card>
+          <Card className="animate-scale-in p-10 text-center text-sm text-muted-foreground">No companies with signals yet. Run the worker to ingest sources.</Card>
         ) : (
-          <Card className="divide-y">
-            {companies.map((c) => (
-              <Link key={c.id} href={`/companies/${c.id}`} className="group flex items-center gap-3 p-3 hover:bg-accent/40">
+          <Card className="animate-fade-up divide-y">
+            {companies.map((c, i) => (
+              <Link
+                key={c.id}
+                href={`/companies/${c.id}`}
+                className="group flex animate-fade-up items-center gap-3 p-3 transition-colors hover:bg-accent/40"
+                style={{ animationDelay: `${i * 50}ms` }}
+              >
                 <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
                   <Building2 className="size-4" />
                 </div>

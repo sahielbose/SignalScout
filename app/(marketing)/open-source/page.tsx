@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TrustStrip } from '@/components/marketing/trust-strip';
+import { Reveal } from '@/components/ui/reveal';
 
 export const metadata = { title: 'Open source - SignalScout' };
 
@@ -63,42 +64,54 @@ export default function OpenSourcePage() {
         </div>
       </section>
 
-      <section className="border-b border-border">
-        <div className="mx-auto grid max-w-6xl gap-6 px-6 py-16 sm:grid-cols-2">
-          {points.map((p) => (
-            <div key={p.title} className="rounded-xl border border-border bg-[hsl(var(--card))] p-6">
-              <h2 className="text-lg font-medium">{p.title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-[hsl(var(--muted-foreground))]">{p.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <Reveal>
+        <section className="border-b border-border">
+          <div className="mx-auto grid max-w-6xl gap-6 px-6 py-16 sm:grid-cols-2">
+            {points.map((p, i) => (
+              <div
+                key={p.title}
+                style={{ animationDelay: `${i * 50}ms` }}
+                className="animate-fade-up rounded-xl border border-border bg-[hsl(var(--card))] p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <h2 className="text-lg font-medium">{p.title}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-[hsl(var(--muted-foreground))]">{p.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </Reveal>
 
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-6 py-16">
-          <h2 className="text-2xl font-semibold tracking-tight">Self-host in a few commands</h2>
-          <p className="mt-3 max-w-2xl text-sm text-[hsl(var(--muted-foreground))]">
-            Two processes run side by side: the web app and an always-on worker for scheduled ingestion. Postgres needs
-            the vector and pg_trgm extensions.
-          </p>
-          <pre className="mt-6 overflow-x-auto rounded-xl border border-[hsl(var(--ink-section-border))] bg-[hsl(var(--ink-section))] p-5 font-mono text-xs leading-relaxed text-[hsl(var(--ink-section-foreground))]">
-            {quickstart}
-          </pre>
-        </div>
-      </section>
+      <Reveal>
+        <section className="border-b border-border">
+          <div className="mx-auto max-w-6xl px-6 py-16">
+            <h2 className="text-2xl font-semibold tracking-tight">Self-host in a few commands</h2>
+            <p className="mt-3 max-w-2xl text-sm text-[hsl(var(--muted-foreground))]">
+              Two processes run side by side: the web app and an always-on worker for scheduled ingestion. Postgres needs
+              the vector and pg_trgm extensions.
+            </p>
+            <pre className="mt-6 overflow-x-auto rounded-xl border border-[hsl(var(--ink-section-border))] bg-[hsl(var(--ink-section))] p-5 font-mono text-xs leading-relaxed text-[hsl(var(--ink-section-foreground))]">
+              {quickstart}
+            </pre>
+          </div>
+        </section>
+      </Reveal>
 
-      <TrustStrip />
+      <Reveal>
+        <TrustStrip />
+      </Reveal>
 
-      <section id="license" className="scroll-mt-20 border-b border-border">
-        <div className="mx-auto max-w-6xl px-6 py-16">
-          <h2 className="text-2xl font-semibold tracking-tight">License</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[hsl(var(--muted-foreground))]">
-            SignalScout is released under the MIT license. The core is MIT, Apache, and Postgres licensed and
-            self-hostable end to end. The only optional closed pieces, the hosted LLM API and hosted search, sit behind
-            interfaces with open swaps. No secret is ever stored in code.
-          </p>
-        </div>
-      </section>
+      <Reveal>
+        <section id="license" className="scroll-mt-20 border-b border-border">
+          <div className="mx-auto max-w-6xl px-6 py-16">
+            <h2 className="text-2xl font-semibold tracking-tight">License</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[hsl(var(--muted-foreground))]">
+              SignalScout is released under the MIT license. The core is MIT, Apache, and Postgres licensed and
+              self-hostable end to end. The only optional closed pieces, the hosted LLM API and hosted search, sit behind
+              interfaces with open swaps. No secret is ever stored in code.
+            </p>
+          </div>
+        </section>
+      </Reveal>
     </>
   );
 }

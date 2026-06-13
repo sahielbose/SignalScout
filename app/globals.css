@@ -152,3 +152,40 @@
   background: hsl(var(--border));
   border-radius: 8px;
 }
+
+/* smooth anchor scrolling (marketing nav jumps) */
+html {
+  scroll-behavior: smooth;
+}
+
+/* loading shimmer used by the Skeleton component */
+@keyframes ss-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+.skeleton {
+  background-image: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted-foreground) / 0.12) 37%,
+    hsl(var(--muted)) 63%
+  );
+  background-size: 200% 100%;
+  animation: ss-shimmer 1.6s linear infinite;
+}
+
+/* honor users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

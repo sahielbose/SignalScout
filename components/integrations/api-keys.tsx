@@ -44,18 +44,18 @@ export function ApiKeys({ keys }: { keys: KeyRow[] }) {
     <div className="space-y-4">
       <div className="flex gap-2">
         <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Key name (e.g. production)" />
-        <Button onClick={create} disabled={pending}>
+        <Button onClick={create} disabled={pending} className="transition-all duration-200 hover:shadow-md active:scale-[0.98]">
           {pending ? <Loader2 className="animate-spin" /> : <Plus />} New key
         </Button>
       </div>
 
       {fresh && (
-        <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
+        <div className="animate-scale-in rounded-md border border-primary/30 bg-primary/5 p-3">
           <p className="text-xs font-medium text-primary">Copy this key now - it won&apos;t be shown again.</p>
           <div className="mt-2 flex items-center gap-2">
             <code className="flex-1 truncate rounded bg-background px-2 py-1 font-mono text-xs">{fresh}</code>
-            <Button size="icon" variant="outline" onClick={copy} className="size-8">
-              {copied ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+            <Button size="icon" variant="outline" onClick={copy} className="size-8 transition-all duration-200 hover:shadow-md active:scale-[0.96]">
+              {copied ? <Check className="size-3.5 animate-pop text-primary" /> : <Copy className="size-3.5" />}
             </Button>
           </div>
         </div>
@@ -65,8 +65,8 @@ export function ApiKeys({ keys }: { keys: KeyRow[] }) {
         {keys.length === 0 ? (
           <p className="p-4 text-sm text-muted-foreground">No API keys yet.</p>
         ) : (
-          keys.map((k) => (
-            <div key={k.id} className="flex items-center gap-3 p-3">
+          keys.map((k, i) => (
+            <div key={k.id} className="flex animate-fade-up items-center gap-3 p-3 transition-colors hover:bg-muted/40" style={{ animationDelay: `${i * 50}ms` }}>
               <KeyRound className="size-4 text-muted-foreground" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">

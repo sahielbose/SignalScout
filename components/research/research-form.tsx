@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function ResearchForm({ defaults }: { defaults?: { name?: string; company?: string; domain?: string } }) {
   const [name, setName] = useState(defaults?.name ?? '');
@@ -51,12 +52,12 @@ export function ResearchForm({ defaults }: { defaults?: { name?: string; company
           <button
             type="button"
             onClick={() => setAdvanced((a) => !a)}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ChevronDown className={`size-3 transition-transform ${advanced ? 'rotate-180' : ''}`} /> Strong keys (optional)
+            <ChevronDown className={`size-3 transition-transform duration-200 ${advanced ? 'rotate-180' : ''}`} /> Strong keys (optional)
           </button>
           {advanced && (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid animate-fade-down gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="li">LinkedIn URL</Label>
                 <Input id="li" value={linkedinUrl} onChange={(e) => setLinkedin(e.target.value)} placeholder="linkedin.com/in/…" />
@@ -77,28 +78,48 @@ export function ResearchForm({ defaults }: { defaults?: { name?: string; company
       </Card>
 
       {pending && (
-        <Card className="space-y-3 p-5">
-          <div className="h-5 w-48 animate-pulse rounded bg-muted" />
-          <div className="h-3 w-full animate-pulse rounded bg-muted" />
-          <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
-          <p className="text-xs text-muted-foreground">Gathering public sources and verifying identity…</p>
+        <Card className="animate-scale-in space-y-4 p-5">
+          <div className="flex items-center justify-between gap-3">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-6 w-24 rounded-full" />
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <Skeleton className="h-5 w-16 rounded-full" />
+            <Skeleton className="h-5 w-20 rounded-full" />
+            <Skeleton className="h-5 w-14 rounded-full" />
+          </div>
+          <div className="space-y-2 rounded-md border p-4">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-5/6" />
+            <Skeleton className="h-3 w-2/3" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+          <p className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 className="size-3 animate-spin" /> Gathering public sources and verifying identity…
+          </p>
         </Card>
       )}
 
       {res && !res.ok && res.quotaExceeded && (
-        <Card className="border-beacon/40 bg-beacon/5 p-4 text-sm">
+        <Card className="animate-fade-up border-beacon/40 bg-beacon/5 p-4 text-sm">
           <p className="text-beacon">{res.error}</p>
-          <a href="/usage" className="mt-1 inline-block text-xs text-primary underline-offset-4 hover:underline">
+          <a
+            href="/usage"
+            className="mt-1 inline-block text-xs text-primary underline-offset-4 transition-colors hover:underline"
+          >
             Add your own API key on the Usage page →
           </a>
         </Card>
       )}
       {res && !res.ok && !res.quotaExceeded && (
-        <Card className="border-destructive/40 p-4 text-sm text-destructive">{res.error}</Card>
+        <Card className="animate-fade-up border-destructive/40 p-4 text-sm text-destructive">{res.error}</Card>
       )}
 
       {res?.ok && res.result && (
-        <Card className="p-5">
+        <Card className="animate-scale-in p-5">
           <DossierPanel dossier={res.result.dossier} meta={{ model: res.result.model, cached: res.result.cached, toolCalls: res.result.toolCalls }} />
         </Card>
       )}

@@ -20,7 +20,7 @@ export default async function ListsPage() {
     <>
       <PageHeader title="Lists" description="Group people and companies, bulk-research them, and export to CSV for your sequencer." />
       <div className="mx-auto max-w-3xl space-y-5 p-6">
-        <Card className="p-4">
+        <Card className="animate-fade-up p-4">
           <form action={createListAction} className="flex gap-2">
             <Input name="name" placeholder="New list name (e.g. Q3 fintech targets)" required />
             <Button type="submit">
@@ -30,14 +30,18 @@ export default async function ListsPage() {
         </Card>
 
         {rows.length === 0 ? (
-          <Card className="flex flex-col items-center gap-3 p-12 text-center">
+          <Card className="flex animate-scale-in flex-col items-center gap-3 p-12 text-center">
             <ListChecks className="size-8 text-primary" />
             <p className="text-sm text-muted-foreground">No lists yet. Create one above, or use “Add to list” on a signal.</p>
           </Card>
         ) : (
           <div className="space-y-2">
-            {rows.map((l) => (
-              <Card key={l.id} className="flex items-center justify-between p-4">
+            {rows.map((l, i) => (
+              <Card
+                key={l.id}
+                className="flex animate-fade-up items-center justify-between p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                style={{ animationDelay: `${i * 50}ms` }}
+              >
                 <Link href={`/lists/${l.id}`} className="group flex min-w-0 flex-1 items-center gap-3">
                   <div className="flex size-9 items-center justify-center rounded-md bg-primary/12 text-primary">
                     <ListChecks className="size-4" />

@@ -45,13 +45,24 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'group relative flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200',
                 active
                   ? 'bg-primary/12 text-primary'
-                  : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                  : 'text-muted-foreground hover:translate-x-0.5 hover:bg-accent hover:text-foreground',
               )}
             >
-              <item.icon className="size-4" />
+              <span
+                className={cn(
+                  'absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-primary transition-all duration-200',
+                  active ? 'opacity-100' : 'opacity-0',
+                )}
+              />
+              <item.icon
+                className={cn(
+                  'size-4 transition-transform duration-200',
+                  active ? '' : 'group-hover:scale-110',
+                )}
+              />
               {item.label}
             </Link>
           );

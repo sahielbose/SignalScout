@@ -30,8 +30,8 @@ export function OnboardingCard({ hasIcp }: { hasIcp: boolean }) {
 
   return (
     <div className="mx-auto max-w-2xl p-6">
-      <Card className="radar-grid p-8">
-        <div className="flex size-11 items-center justify-center rounded-xl bg-primary/12 text-primary">
+      <Card className="radar-grid animate-scale-in p-8">
+        <div className="flex size-11 animate-pop items-center justify-center rounded-xl bg-primary/12 text-primary">
           <Radar className="size-6" />
         </div>
         <h2 className="mt-4 text-xl font-semibold tracking-tight">Let&apos;s populate your feed</h2>
@@ -43,7 +43,7 @@ export function OnboardingCard({ hasIcp }: { hasIcp: boolean }) {
 
         <ol className="mt-6 space-y-3">
           {steps.map((s, i) => (
-            <li key={s.title} className="flex gap-3">
+            <li key={s.title} className="flex animate-fade-up gap-3" style={{ animationDelay: `${i * 50}ms` }}>
               <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">{i + 1}</div>
               <div>
                 <div className="flex items-center gap-1.5 text-sm font-medium">
@@ -56,11 +56,19 @@ export function OnboardingCard({ hasIcp }: { hasIcp: boolean }) {
         </ol>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          <Button onClick={seed} disabled={pending}>
+          <Button
+            onClick={seed}
+            disabled={pending}
+            className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+          >
             {pending ? <Loader2 className="animate-spin" /> : <Sparkles />}
             {pending ? 'Seeding…' : 'Seed a sample ICP & signals'}
           </Button>
-          <Button asChild variant="outline">
+          <Button
+            asChild
+            variant="outline"
+            className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+          >
             <Link href="/icps">Define my own ICP</Link>
           </Button>
         </div>

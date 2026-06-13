@@ -32,7 +32,19 @@ export function WorldDots({ className }: { className?: string }) {
           </g>
         </mask>
       </defs>
-      <rect width="1000" height="500" fill="url(#ss-worlddots)" mask="url(#ss-continents)" opacity="0.85" />
+      <rect
+        width="1000"
+        height="500"
+        fill="url(#ss-worlddots)"
+        mask="url(#ss-continents)"
+        opacity="0.85"
+        className="animate-fade-in [animation-duration:1200ms] motion-safe:[animation:ss-worlddots-drift_22s_ease-in-out_infinite_alternate]"
+        style={{ transformOrigin: 'center', transformBox: 'fill-box' }}
+      />
+      <style>{`@keyframes ss-worlddots-drift {
+        from { transform: translateY(0) scale(1); }
+        to { transform: translateY(-8px) scale(1.012); }
+      }`}</style>
     </svg>
   );
 }

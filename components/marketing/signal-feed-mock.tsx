@@ -119,7 +119,9 @@ export function SignalFeedMock() {
   return (
     <div className="relative h-[620px] space-y-3 overflow-hidden">
       {cards.map((c, i) => (
-        <SignalCardMock key={i} card={c} />
+        <div key={i} className="animate-fade-up" style={{ animationDelay: `${i * 50}ms` }}>
+          <SignalCardMock card={c} />
+        </div>
       ))}
     </div>
   );

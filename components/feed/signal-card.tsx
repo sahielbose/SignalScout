@@ -25,7 +25,7 @@ export function SignalCard({ item, onAddToList }: { item: FeedItem; onAddToList?
   const pct = Math.round((item.strength ?? 0) * 100);
 
   return (
-    <article className={cn('rounded-lg border border-l-2 bg-card p-4 transition-colors hover:border-border/80', style.border)}>
+    <article className={cn('rounded-lg border border-l-2 bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-border/80 hover:shadow-md', style.border)}>
       <div className="flex items-center gap-2 text-xs">
         <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium', style.badge)}>
           <Icon className="size-3" />
@@ -36,7 +36,7 @@ export function SignalCard({ item, onAddToList }: { item: FeedItem; onAddToList?
         <span className="text-muted-foreground">{relativeTime(when)}</span>
         <div className="ml-auto flex items-center gap-2" title={`Signal strength ${pct}%`}>
           <div className="hidden h-1.5 w-16 overflow-hidden rounded-full bg-muted sm:block">
-            <div className={cn('h-full rounded-full', item.strength && item.strength >= 0.7 ? 'bg-beacon' : 'bg-primary')} style={{ width: `${pct}%` }} />
+            <div className={cn('h-full rounded-full transition-[width] duration-500 ease-out', item.strength && item.strength >= 0.7 ? 'bg-beacon' : 'bg-primary')} style={{ width: `${pct}%` }} />
           </div>
           <span className={cn('font-mono text-xs font-medium', tone.cls)}>{pct}%</span>
         </div>

@@ -1,3 +1,4 @@
+import { Reveal } from '@/components/ui/reveal';
 import { ResearchTrace } from './research-trace';
 import { DossierMock } from './dossier-mock';
 
@@ -14,8 +15,12 @@ export function ResearchSection() {
           every fact links to its source.
         </p>
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
-          <ResearchTrace />
-          <DossierMock />
+          <Reveal>
+            <ResearchTrace />
+          </Reveal>
+          <Reveal delay={120}>
+            <DossierMock />
+          </Reveal>
         </div>
         <p className="mt-6 text-sm text-[hsl(var(--muted-foreground))]">
           Every fact carries a clickable source. Uncited facts are dropped before you ever see them.

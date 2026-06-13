@@ -14,7 +14,9 @@ export default async function ResearchPage({ searchParams }: { searchParams: Pro
         title="Deep research"
         description="Point it at a person - every fact in the dossier carries a clickable source. Uncited claims are dropped; low-confidence results are flagged, never faked."
       />
-      <ResearchForm defaults={{ name: sp.name, company: sp.company, domain: sp.domain }} />
+      <div className="animate-fade-up">
+        <ResearchForm defaults={{ name: sp.name, company: sp.company, domain: sp.domain }} />
+      </div>
     </>
   );
 }

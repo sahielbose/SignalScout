@@ -21,6 +21,7 @@ function TestButton({ id }: { id: string }) {
       variant="ghost"
       size="sm"
       disabled={pending}
+      className="transition-all duration-200 active:scale-[0.97]"
       onClick={() =>
         start(async () => {
           const r = await testWebhookAction(id);
@@ -39,7 +40,7 @@ export function Webhooks({ webhooks }: { webhooks: WebhookView[] }) {
     <div className="space-y-3">
       <form action={createWebhookAction} className="flex gap-2" onSubmit={() => setUrl('')}>
         <Input name="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://your-app.com/webhooks/signal-scout" />
-        <Button type="submit">
+        <Button type="submit" className="transition-all duration-200 hover:shadow-md active:scale-[0.98]">
           <Plus /> Add
         </Button>
       </form>
@@ -48,8 +49,8 @@ export function Webhooks({ webhooks }: { webhooks: WebhookView[] }) {
         {webhooks.length === 0 ? (
           <p className="p-4 text-sm text-muted-foreground">No webhooks. New high-strength matched signals POST a signed payload.</p>
         ) : (
-          webhooks.map((w) => (
-            <div key={w.id} className="flex items-center gap-2 p-3">
+          webhooks.map((w, i) => (
+            <div key={w.id} className="flex animate-fade-up items-center gap-2 p-3 transition-colors hover:bg-muted/40" style={{ animationDelay: `${i * 50}ms` }}>
               <Webhook className="size-4 text-muted-foreground" />
               <div className="min-w-0 flex-1">
                 <div className="truncate font-mono text-xs">{w.url}</div>
