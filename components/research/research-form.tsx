@@ -16,14 +16,14 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// "What we read" — which public sources to build the profile from.
+// "What we read" - which public sources to build the profile from.
 const SOURCE_OPTIONS: { value: ResearchSources; label: string; hint: string; Icon: typeof Github }[] = [
   { value: 'both', label: 'Both', hint: 'GitHub plus the public web (recommended)', Icon: Layers },
   { value: 'github', label: 'GitHub only', hint: 'Just their public code on GitHub', Icon: Github },
   { value: 'web', label: 'Public web only', hint: 'Talks, articles, and company pages', Icon: Globe },
 ];
 
-// "How deep to dig" — speed vs. freshness.
+// "How deep to dig" - speed vs. freshness.
 const DETAIL_OPTIONS: { value: ResearchDetail; label: string; hint: string }[] = [
   { value: 'quick', label: 'Quick', hint: 'Fast; may reuse a recent profile' },
   { value: 'thorough', label: 'Thorough', hint: 'Always rebuilt from fresh sources' },
