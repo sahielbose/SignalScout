@@ -467,11 +467,14 @@ export function DossierPanel({
         </span>
       </div>
 
-      {/* plain-English "what is this" helper */}
-      <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
-        This research profile is built from public sources only. Every fact below links to where we found it, so you can
-        check it yourself before you reach out. The badge at the top right shows how much of it we could back with a source.
-      </div>
+      {/* plain-English "what is this" helper. Hidden when the low-confidence note
+          below is showing, since that note already covers how sourcing works. */}
+      {!dossier.lowConfidence && (
+        <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+          This research profile is built from public sources only. Every fact below links to where we found it, so you can
+          check it yourself before you reach out. The badge at the top right shows how much of it we could back with a source.
+        </div>
+      )}
 
       {dossier.lowConfidence && (
         <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-300/90">
