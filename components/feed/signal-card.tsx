@@ -89,7 +89,7 @@ export function SignalCard({
               : ''}
           </Badge>
         )}
-        <div className="ml-auto flex items-center gap-2" title={`Signal strength ${pct}%`}>
+        <div className="ml-auto flex items-center gap-2" title={`How strong a buying sign this is: ${pct}%`}>
           <div className="hidden h-1.5 w-16 overflow-hidden rounded-full bg-muted sm:block">
             <div className={cn('h-full rounded-full transition-[width] duration-500 ease-out', item.strength && item.strength >= 0.7 ? 'bg-beacon' : 'bg-primary')} style={{ width: `${pct}%` }} />
           </div>
@@ -123,11 +123,12 @@ export function SignalCard({
                 ? `/people/${item.personId}`
                 : `/research?company=${encodeURIComponent(subject)}${item.companyDomain ? `&domain=${item.companyDomain}` : ''}`
             }
+            title="Build a research profile with cited sources for this contact or company"
           >
             <FileSearch className="size-3.5" /> Deep research
           </Link>
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => onAddToList?.(item)}>
+        <Button size="sm" variant="ghost" onClick={() => onAddToList?.(item)} title="Save this company or person to a list">
           <ListPlus className="size-3.5" /> Add to list
         </Button>
 

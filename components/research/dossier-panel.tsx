@@ -265,17 +265,28 @@ export function DossierPanel({
             'flex animate-pop items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium',
             dossier.lowConfidence ? 'border-amber-500/30 text-amber-400' : 'border-primary/30 text-primary',
           )}
-          title={`${sources.length} cited fact(s)`}
+          title={
+            dossier.lowConfidence
+              ? `Only ${pct}% of the facts below could be backed by a public source we could link to. Read with care.`
+              : `${pct}% of the facts below are backed by a public source we can link to (${sources.length} in total).`
+          }
         >
           {dossier.lowConfidence ? <ShieldAlert className="size-3.5" /> : <ShieldCheck className="size-3.5" />}
-          {dossier.lowConfidence ? `Low confidence · ${pct}%` : `${pct}% cited`}
+          {dossier.lowConfidence ? `Low confidence · ${pct}% sourced` : `${pct}% sourced`}
         </div>
+      </div>
+
+      {/* plain-English "what is this" helper */}
+      <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+        This research profile is built from public sources only. Every fact below links to where we found it, so you can
+        check it yourself before you reach out. The badge at the top right shows how much of it we could back with a source.
       </div>
 
       {dossier.lowConfidence && (
         <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-300/90">
-          This dossier is low-confidence - fewer than 60% of drafted facts could be backed by a citable source, so unverified
-          claims were dropped. Add a GitHub handle or LinkedIn URL, or connect a search provider, for a stronger result.
+          Low confidence: fewer than 60% of the drafted facts could be linked to a public source, so the unbacked ones were
+          dropped to keep this honest. Double-check anything important. Adding this person&apos;s GitHub handle or LinkedIn
+          URL usually gives a stronger result.
         </div>
       )}
 
@@ -290,6 +301,9 @@ export function DossierPanel({
       {/* structured cited facts */}
       {hasFacts ? (
         <div className="rounded-md border bg-card px-4">
+          <div className="border-b py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Facts we found (each links to its source)
+          </div>
           <FactRow label="Role" fact={structured.role} index={0} />
           <FactRow label="Company" fact={structured.company} index={1} />
           <FactRow label="GitHub" fact={structured.github_contributions} index={2} />
@@ -300,7 +314,8 @@ export function DossierPanel({
         </div>
       ) : (
         <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
-          No citable facts found for this person yet.
+          We could not find any public facts to link to for this person yet. Adding their GitHub handle or LinkedIn URL and
+          refreshing usually helps.
         </div>
       )}
 
@@ -310,12 +325,14 @@ export function DossierPanel({
           <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
             <Sparkles className="size-3.5" /> Why they&apos;d care
           </div>
+          <p className="text-[0.7rem] text-muted-foreground">An angle for your outreach, based on the facts above.</p>
           <p className="mt-1.5 text-sm">{dossier.why_they_care}</p>
         </div>
         <div className="rounded-md border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex items-center gap-1.5 text-xs font-medium text-beacon">
             <MessageSquare className="size-3.5" /> Suggested opener
           </div>
+          <p className="text-[0.7rem] text-muted-foreground">A first line you can copy into your message.</p>
           <p className="mt-1.5 text-sm">{dossier.suggested_opener}</p>
         </div>
       </div>
@@ -346,8 +363,8 @@ export function DossierPanel({
 
       {meta && (
         <p className="text-[0.7rem] text-muted-foreground">
-          {meta.cached ? 'Cached' : 'Fresh'} · model {meta.model ?? '-'}
-          {meta.toolCalls != null ? ` · ${meta.toolCalls} tool calls` : ''}
+          {meta.cached ? 'Saved from an earlier run' : 'Freshly researched'}
+          {meta.model ? ` · written by ${meta.model}` : ''}
         </p>
       )}
     </div>

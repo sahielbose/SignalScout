@@ -182,6 +182,8 @@ export const signals = pgTable(
     index('signals_type_idx').on(t.type),
     index('signals_company_idx').on(t.companyId),
     index('signals_person_idx').on(t.personId),
+    // GIN index so the ICP overlap (matched_icp_ids && org_icp_ids) can use an index.
+    index('signals_matched_icp_gin').using('gin', t.matchedIcpIds),
   ],
 );
 

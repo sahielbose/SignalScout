@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Upload, AlertTriangle } from 'lucide-react';
 import { pushListToCrmAction } from '@/lib/crm/actions';
@@ -29,6 +29,16 @@ export function CrmPush({
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
 
+  // Let the user close the confirm dialog with Escape, but not mid-push.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !pending) setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, pending]);
+
   if (!configured) {
     return (
       <Button
@@ -36,7 +46,22 @@ export function CrmPush({
         variant="outline"
         size="sm"
         disabled
-        title="Connect a CRM in your environment to enable push"
+        title="Connecting a CRM is set up by an admin. Once connected, you can send a list straight into it."
+      >
+        <Upload className="size-4" /> Push to CRM
+      </Button>
+    );
+  }
+
+  // Nothing to push: a list with no people would fire a no-op send.
+  if (peopleCount === 0) {
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled
+        title="Add at least one person to this list before sending it to your CRM."
       >
         <Upload className="size-4" /> Push to CRM
       </Button>
@@ -75,12 +100,13 @@ export function CrmPush({
                 <AlertTriangle className="size-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <h2 className="text-sm font-semibold">Push to {provider}?</h2>
+                <h2 className="text-sm font-semibold">Send to {provider}?</h2>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  This will send {peopleCount} {peopleCount === 1 ? 'person' : 'people'} from
+                  This copies {peopleCount} {peopleCount === 1 ? 'person' : 'people'} from
                   {' '}
-                  <span className="font-medium text-foreground">{listName}</span> to your CRM. This
-                  action is logged. Companies and members without contact details are skipped.
+                  <span className="font-medium text-foreground">{listName}</span> into {provider} as contacts.
+                  Companies and anyone without contact details are skipped, and this send is recorded. You can
+                  always do it again later.
                 </p>
               </div>
             </div>

@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState, useTransition } from 'react';
 import { notFound } from 'next/navigation';
-import { Sparkles, Lock, Loader2 } from 'lucide-react';
+import { Sparkles, Lock, Loader2, FileSearch } from 'lucide-react';
 import type { PersonWithContext } from '@/lib/research/people-queries';
 import { enrichPersonAction, getPersonViewData } from '@/lib/enrichment/actions';
 import { toast } from '@/lib/toast';
@@ -29,11 +29,16 @@ function EnrichButton({
   if (!enabled) {
     return (
       <span className="inline-flex items-center gap-2">
-        <Button variant="outline" size="sm" disabled title="Set ENABLE_PAID_ENRICHMENT and a vendor key to turn this on.">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled
+          title="Look up extra contact details (like an email) from a paid data provider. An admin turns this on in settings."
+        >
           <Lock />
-          Enrich contact
+          Find contact details
         </Button>
-        <span className="text-xs text-muted-foreground">off by default</span>
+        <span className="text-xs text-muted-foreground">turned off</span>
       </span>
     );
   }
@@ -53,9 +58,16 @@ function EnrichButton({
     });
 
   return (
-    <Button variant="outline" size="sm" onClick={run} disabled={pending} className="group hover:shadow-md">
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={run}
+      disabled={pending}
+      className="group hover:shadow-md"
+      title="Look up extra contact details (like an email) from a paid data provider"
+    >
       {pending ? <Loader2 className="animate-spin" /> : <Sparkles className="transition-transform duration-300 group-hover:scale-110" />}
-      {pending ? 'Enriching…' : 'Enrich contact'}
+      {pending ? 'Looking up…' : 'Find contact details'}
     </Button>
   );
 }
@@ -87,18 +99,30 @@ export default function PersonPage({ params }: { params: Promise<{ id: string }>
   if (!data.ctx) notFound();
 
   const { person, companyName, dossier, meta } = data.ctx;
+  const reload = () => setNonce((n) => n + 1);
+  const subtitle = [person.title, companyName, person.location].filter(Boolean).join(' · ');
 
   return (
     <>
       <PageHeader
         title={person.fullName}
-        description={[person.title, companyName, person.location].filter(Boolean).join(' · ') || undefined}
+        description={
+          subtitle
+            ? `${subtitle}. A research profile of this person, built from public sources, to help you reach out.`
+            : 'A research profile of this person, built from public sources, to help you reach out.'
+        }
       >
-        <EnrichButton personId={person.id} enabled={data.enrichmentEnabled} onEnriched={() => setNonce((n) => n + 1)} />
-        <RefreshDossier personId={person.id} name={person.fullName} company={companyName} hasDossier={!!dossier} />
+        <EnrichButton personId={person.id} enabled={data.enrichmentEnabled} onEnriched={reload} />
+        <RefreshDossier
+          personId={person.id}
+          name={person.fullName}
+          company={companyName}
+          hasDossier={!!dossier}
+          onDone={reload}
+        />
       </PageHeader>
 
-      <div className="mx-auto max-w-3xl p-6">
+      <div className="mx-auto max-w-3xl space-y-4 p-6">
         {dossier ? (
           <Card className="p-5">
             <DossierPanel
@@ -108,11 +132,22 @@ export default function PersonPage({ params }: { params: Promise<{ id: string }>
             />
           </Card>
         ) : (
-          <Card className="flex flex-col items-center gap-3 p-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              No dossier yet for {person.fullName}. Run deep research to build a cited profile from public sources.
-            </p>
-            <RefreshDossier personId={person.id} name={person.fullName} company={companyName} hasDossier={false} />
+          <Card className="flex flex-col items-center gap-4 p-12 text-center">
+            <FileSearch className="size-6 text-muted-foreground" />
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium">No research profile yet for {person.fullName}</p>
+              <p className="mx-auto max-w-md text-sm text-muted-foreground">
+                Click below and Signal Scout reads public sources (GitHub, talks, the web) and writes a short profile with
+                facts you can cite, why this person would care, and a suggested opener for your first message.
+              </p>
+            </div>
+            <RefreshDossier
+              personId={person.id}
+              name={person.fullName}
+              company={companyName}
+              hasDossier={false}
+              onDone={reload}
+            />
           </Card>
         )}
       </div>

@@ -69,7 +69,8 @@ export async function getEvents(orgId: string): Promise<EventItem[]> {
     .leftJoin(companies, eq(signals.companyId, companies.id))
     .leftJoin(people, eq(signals.personId, people.id))
     .where(where)
-    .orderBy(desc(recency), desc(signals.strength), desc(signals.id));
+    .orderBy(desc(recency), desc(signals.strength), desc(signals.id))
+    .limit(100);
 
   return rows as EventItem[];
 }

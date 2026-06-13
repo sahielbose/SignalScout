@@ -33,31 +33,31 @@ export function IcpForm({ action, initial, submitLabel = 'Save ICP', onCancel }:
       {initial?.id && <input type="hidden" name="id" value={initial.id} />}
 
       <div className="animate-fade-up" style={{ animationDelay: '0ms' }}>
-        <Field label="Name" htmlFor="name">
-          <Input id="name" name="name" required defaultValue={initial?.name ?? ''} placeholder="e.g. Series A fintech raising + hiring GTM" />
+        <Field label="Profile name" htmlFor="name" hint="just for you">
+          <Input id="name" name="name" required defaultValue={initial?.name ?? ''} placeholder="e.g. Fintech startups hiring sales" />
         </Field>
       </div>
 
       <div className="grid animate-fade-up gap-4 sm:grid-cols-2" style={{ animationDelay: '50ms' }}>
-        <Field label="Industries" hint="comma-separated">
+        <Field label="Industries" hint="separate with commas">
           <Textarea name="industries" defaultValue={d?.industries?.join(', ') ?? ''} placeholder="fintech, developer tools, payments" />
         </Field>
-        <Field label="Target titles" hint="comma-separated">
+        <Field label="Job titles you sell to" hint="separate with commas">
           <Textarea name="titles" defaultValue={d?.titles?.join(', ') ?? ''} placeholder="account executive, head of sales, gtm" />
         </Field>
-        <Field label="Keywords" hint="comma-separated">
+        <Field label="Keywords" hint="words that describe a good fit">
           <Textarea name="keywords" defaultValue={d?.keywords?.join(', ') ?? ''} placeholder="api, payments, infrastructure, sdk" />
         </Field>
-        <Field label="Geographies" hint="comma-separated">
+        <Field label="Locations" hint="countries or regions, comma-separated">
           <Textarea name="geos" defaultValue={d?.geos?.join(', ') ?? ''} placeholder="United States, EMEA, Remote" />
         </Field>
       </div>
 
       <div className="grid animate-fade-up gap-4 sm:grid-cols-2" style={{ animationDelay: '100ms' }}>
-        <Field label="Company size" htmlFor="companySize">
-          <Input id="companySize" name="companySize" defaultValue={d?.companySize ?? ''} placeholder="11-200" />
+        <Field label="Company size" htmlFor="companySize" hint="number of employees, as a range">
+          <Input id="companySize" name="companySize" defaultValue={d?.companySize ?? ''} placeholder="e.g. 11-200" />
         </Field>
-        <Field label="Notify strength threshold" htmlFor="notifyThreshold" hint="0-1; notify above this">
+        <Field label="When to alert me" htmlFor="notifyThreshold" hint="0 = everything, 1 = only the strongest">
           <Input
             id="notifyThreshold"
             name="notifyThreshold"
@@ -69,10 +69,17 @@ export function IcpForm({ action, initial, submitLabel = 'Save ICP', onCancel }:
           />
         </Field>
       </div>
+      <p className="-mt-1 text-xs text-muted-foreground">
+        Strength is how strong a buying sign is, from 0 to 1. We only send an alert when a match is at least this strong.
+        0.7 is a good starting point.
+      </p>
 
       <div className="animate-fade-up" style={{ animationDelay: '150ms' }}>
-        <Label>Signal types that matter</Label>
-        <p className="mb-2 text-xs text-muted-foreground">A hard filter - only these types match this ICP.</p>
+        <Label>Which buying moments count</Label>
+        <p className="mb-2 text-xs text-muted-foreground">
+          A buying moment is a public sign a company may be ready to buy, like a funding round or a new job posting. Pick
+          the ones you care about, or leave all unselected to include every kind.
+        </p>
         <div className="flex flex-wrap gap-1.5">
           {SIGNAL_TYPES.map((t) => {
             const checked = d?.signalTypes?.includes(t) ?? false;
@@ -89,9 +96,12 @@ export function IcpForm({ action, initial, submitLabel = 'Save ICP', onCancel }:
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-6 rounded-md border bg-muted/30 p-3 animate-fade-up" style={{ animationDelay: '200ms' }}>
-        <ToggleField name="notifyEmail" label="Email alerts" defaultChecked={d?.notify?.email ?? false} />
-        <ToggleField name="notifySlack" label="Slack alerts" defaultChecked={d?.notify?.slack ?? false} />
+      <div className="animate-fade-up rounded-md border bg-muted/30 p-3" style={{ animationDelay: '200ms' }}>
+        <p className="mb-2 text-xs font-medium">How should we tell you about strong matches?</p>
+        <div className="flex flex-wrap items-center gap-6">
+          <ToggleField name="notifyEmail" label="Email me" defaultChecked={d?.notify?.email ?? false} />
+          <ToggleField name="notifySlack" label="Send to Slack" defaultChecked={d?.notify?.slack ?? false} />
+        </div>
       </div>
 
       <div className="flex items-center gap-2 animate-fade-up" style={{ animationDelay: '250ms' }}>

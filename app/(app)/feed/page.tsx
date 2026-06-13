@@ -4,6 +4,7 @@ import { requireOrgId } from '@/lib/auth/session';
 import { getFeed, getFeedFacets, type FeedFilters } from '@/lib/feed/queries';
 import { listIcps } from '@/lib/icp/service';
 import { SignalTypeSchema, SourceSchema } from '@/lib/types';
+import { PageHeader } from '@/components/app/page-header';
 import { FilterBar } from '@/components/feed/filter-bar';
 import { FeedList } from '@/components/feed/feed-list';
 import { OnboardingCard } from '@/components/onboarding/onboarding-card';
@@ -79,6 +80,10 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="flex h-full flex-col">
+      <PageHeader
+        title="Signal feed"
+        description="A live list of public moments that suggest a company is ready to buy, kept to the kinds of customers you sell to."
+      />
       <div className="animate-fade-down">
         <FilterBar
           options={{
@@ -87,12 +92,16 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
             sources: facets.sources,
           }}
         />
-        <div className="flex items-center justify-end px-6 pt-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-6 pt-3 text-xs text-muted-foreground">
+          <p>
+            Narrow the list with the filters above, then act on each signal: open the source, run deep research,
+            or clear it with Actioned, Snooze, or Dismiss.
+          </p>
           <Link
             href={toggleClearedHref(query, showCleared)}
-            className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            className="shrink-0 font-medium underline-offset-4 hover:text-foreground hover:underline"
           >
-            {showCleared ? 'Hide cleared' : 'Show cleared'}
+            {showCleared ? 'Hide cleared signals' : 'Show cleared signals'}
           </Link>
         </div>
       </div>

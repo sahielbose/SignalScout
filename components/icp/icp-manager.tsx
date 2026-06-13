@@ -49,12 +49,35 @@ export function IcpManager({ icps }: { icps: IcpView[] }) {
       }
     });
 
+  const isFirstRun = icps.length === 0;
+
   return (
     <div className="mx-auto max-w-4xl space-y-5 p-6">
+      <Card className="border-primary/20 bg-primary/[0.04] p-4">
+        <p className="text-sm font-medium">How this works</p>
+        <ol className="mt-1.5 space-y-1 text-xs text-muted-foreground">
+          <li>
+            <span className="font-medium text-foreground">1.</span> Describe the kind of customer you sell to (their
+            industry, job titles, size, and so on).
+          </li>
+          <li>
+            <span className="font-medium text-foreground">2.</span> Your live feed instantly shows only the public buying
+            moments that fit, such as a fresh funding round or a new job posting.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">3.</span> We build a research profile with sources for the
+            matching people, so you know who to reach out to and why.
+          </li>
+        </ol>
+        <p className="mt-2 text-xs text-muted-foreground">
+          You can keep several profiles. Pick a ready-made one below to start fast, or build your own.
+        </p>
+      </Card>
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-            <Sparkles className="size-3.5 text-primary" /> Start from a preset
+            <Sparkles className="size-3.5 text-primary" /> Start from a ready-made profile (one click)
           </div>
           <div className="grid gap-2 sm:grid-cols-3">
             {PRESET_ICPS.map((preset, i) => {
@@ -88,7 +111,7 @@ export function IcpManager({ icps }: { icps: IcpView[] }) {
         {!creating && (
           <div className="flex sm:items-start">
             <Button onClick={() => setCreating(true)}>
-              <Plus /> New ICP
+              <Plus /> Build your own
             </Button>
           </div>
         )}
@@ -96,24 +119,33 @@ export function IcpManager({ icps }: { icps: IcpView[] }) {
 
       {creating && (
         <Card className="animate-scale-in p-5">
-          <h2 className="mb-4 text-sm font-semibold">Define an ideal customer profile</h2>
+          <h2 className="text-sm font-semibold">
+            {isFirstRun ? 'Set up your first customer profile' : 'Describe a new customer profile'}
+          </h2>
+          <p className="mb-4 mt-1 text-xs text-muted-foreground">
+            Fill in what you know. Anything you leave blank just means "no preference" and is not used as a filter.
+          </p>
           <IcpForm
             action={async (fd) => {
               await createIcpAction(fd);
               setCreating(false);
             }}
-            submitLabel="Create ICP"
+            submitLabel="Save profile"
             onCancel={icps.length ? () => setCreating(false) : undefined}
           />
         </Card>
       )}
 
-      {icps.length === 0 && !creating && (
+      {!creating && icps.length === 0 && (
         <Card className="flex animate-scale-in flex-col items-center gap-3 p-12 text-center">
           <Crosshair className="size-8 text-primary" />
-          <p className="text-sm text-muted-foreground">No ICPs yet. Define who you sell to so the feed can filter to them.</p>
+          <p className="text-sm font-medium">No customer profiles yet</p>
+          <p className="max-w-sm text-sm text-muted-foreground">
+            Add one so your feed can show the public buying moments that matter to you. Pick a ready-made profile above,
+            or build your own.
+          </p>
           <Button onClick={() => setCreating(true)}>
-            <Plus /> Define your first ICP
+            <Plus /> Build a profile
           </Button>
         </Card>
       )}
@@ -122,13 +154,14 @@ export function IcpManager({ icps }: { icps: IcpView[] }) {
         {icps.map((icp, i) =>
           editingId === icp.id ? (
             <Card key={icp.id} className="animate-scale-in p-5">
-              <h2 className="mb-4 text-sm font-semibold">Edit ICP</h2>
+              <h2 className="mb-4 text-sm font-semibold">Edit this customer profile</h2>
               <IcpForm
                 action={async (fd) => {
                   await updateIcpAction(fd);
                   setEditingId(null);
                 }}
                 initial={icp}
+                submitLabel="Save changes"
                 onCancel={() => setEditingId(null)}
               />
             </Card>
@@ -142,14 +175,22 @@ export function IcpManager({ icps }: { icps: IcpView[] }) {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="truncate font-medium">{icp.name}</h3>
-                    {!icp.active && <Badge variant="muted">paused</Badge>}
+                    {!icp.active && (
+                      <Badge variant="muted" title="Paused profiles do not filter your feed or trigger research">
+                        Paused
+                      </Badge>
+                    )}
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    {icp.definition.signalTypes?.map((t) => (
-                      <Badge key={t} variant="secondary">
-                        {SIGNAL_TYPE_LABELS[t]}
-                      </Badge>
-                    ))}
+                    {icp.definition.signalTypes?.length ? (
+                      icp.definition.signalTypes.map((t) => (
+                        <Badge key={t} variant="secondary">
+                          {SIGNAL_TYPE_LABELS[t]}
+                        </Badge>
+                      ))
+                    ) : (
+                      <Badge variant="muted">All buying moments</Badge>
+                    )}
                   </div>
                   <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">
                     {[
@@ -169,9 +210,13 @@ export function IcpManager({ icps }: { icps: IcpView[] }) {
                       variant="ghost"
                       size="sm"
                       className="text-xs"
-                      title={icp.active ? 'Pause this ICP' : 'Activate this ICP'}
+                      title={
+                        icp.active
+                          ? 'Pause: stop filtering the feed and building research for this profile'
+                          : 'Turn back on: resume filtering the feed for this profile'
+                      }
                     >
-                      {icp.active ? 'Pause' : 'Activate'}
+                      {icp.active ? 'Pause' : 'Turn on'}
                     </Button>
                   </form>
                   <Button variant="ghost" size="icon" onClick={() => setEditingId(icp.id)} title="Edit">
@@ -179,7 +224,17 @@ export function IcpManager({ icps }: { icps: IcpView[] }) {
                   </Button>
                   <form action={deleteIcpAction}>
                     <input type="hidden" name="id" value={icp.id} />
-                    <Button variant="ghost" size="icon" type="submit" title="Delete">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      type="submit"
+                      title="Delete this profile"
+                      onClick={(e) => {
+                        if (!window.confirm(`Delete "${icp.name}"? This removes it from your feed and cannot be undone.`)) {
+                          e.preventDefault();
+                        }
+                      }}
+                    >
                       <Trash2 className="size-4" />
                     </Button>
                   </form>

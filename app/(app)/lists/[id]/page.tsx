@@ -26,9 +26,10 @@ function researchHref(name: string, company: string | null, domain: string | nul
 export default async function ListDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const orgId = await requireOrgId();
   const { id } = await params;
-  const list = await getList(orgId, id);
+  // Both queries are independently org-scoped and fail closed, so fetch them in
+  // parallel instead of waterfalling list -> members.
+  const [list, members] = await Promise.all([getList(orgId, id), getListMembers(orgId, id)]);
   if (!list) notFound();
-  const members = await getListMembers(orgId, id);
   const hasPeople = members.some((m) => m.kind === 'person');
   const peopleCount = members.filter((m) => m.kind === 'person').length;
   const crmConfigured = hasCrm();
@@ -36,7 +37,14 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <>
-      <PageHeader title={list.name} description={`${members.length} member${members.length === 1 ? '' : 's'}`}>
+      <PageHeader
+        title={list.name}
+        description={
+          members.length === 0
+            ? 'A saved group of people and companies. Export it to a spreadsheet or send it to your CRM once you add some.'
+            : `${members.length} saved ${members.length === 1 ? 'contact' : 'contacts'}. Export this group to a spreadsheet, send it to your CRM, or research anyone on it.`
+        }
+      >
         <form action={renameListAction} className="flex items-center gap-1.5">
           <input type="hidden" name="id" value={id} />
           <Input
@@ -66,14 +74,26 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
 
       <div className="mx-auto max-w-4xl space-y-3 p-6">
         {members.length === 0 ? (
-          <Card className="animate-scale-in p-10 text-center text-sm text-muted-foreground">
-            Empty list. Use “Add to list” on a signal, or add a researched person.
+          <Card className="flex animate-scale-in flex-col items-center gap-3 p-10 text-center">
+            <FileSearch className="size-8 text-primary" />
+            <p className="text-sm font-medium">This list is empty</p>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              Add people and companies here from the feed or from a research profile using the "Add to list"
+              button. Once it has some, you can export the whole group to a spreadsheet or send it to your CRM.
+            </p>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/feed">Browse the feed</Link>
+            </Button>
           </Card>
         ) : (
           <>
+            <p className="text-xs text-muted-foreground">
+              Click anyone to open their profile. "Research" builds a research profile on a person backed by public
+              sources you can check. Use "Export CSV" or "Push to CRM" above to send this whole group onward.
+            </p>
             {hasPeople && (
               <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <FileSearch className="size-3.5" /> Use Research on any person to open a cited dossier.
+                <FileSearch className="size-3.5" /> Research opens a profile with sources you can verify.
               </p>
             )}
           <Card className="animate-fade-up divide-y">

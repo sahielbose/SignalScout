@@ -97,11 +97,22 @@ export function FeedList({
   }, []);
 
   if (items.length === 0) {
+    // This view only renders once the org has signals; an empty result here means
+    // the current filters (or the cleared view) hide everything. Guide accordingly.
+    const filtersApplied = new URLSearchParams(query)
+      .toString()
+      .replace(/(^|&)showCleared=1/, '')
+      .length > 0;
     return (
       <div className="mx-auto max-w-md animate-fade-up py-20 text-center">
         <Radar className="mx-auto size-8 animate-pulse-ring text-muted-foreground" />
-        <p className="mt-3 text-sm text-muted-foreground">
-          No signals match these filters yet. Define an ICP and let the worker ingest sources, or relax the filters.
+        <p className="mt-3 text-sm font-medium text-foreground">No signals to show here</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {filtersApplied
+            ? 'Nothing matches your current filters. Widen the time range or strength, or clear the filters to see everything.'
+            : showCleared
+              ? 'Nothing has been cleared yet. Signals you mark Actioned, Snooze, or Dismiss will appear here.'
+              : 'You are all caught up. New buying signals will appear here as the worker finds them.'}
         </p>
       </div>
     );
@@ -109,7 +120,10 @@ export function FeedList({
 
   return (
     <div className="mx-auto max-w-3xl space-y-3 p-6">
-      <p className="text-xs text-muted-foreground">{total} matched signal{total === 1 ? '' : 's'}</p>
+      <p className="text-xs text-muted-foreground">
+        {total} matching signal{total === 1 ? '' : 's'}
+        {showCleared ? '' : ' to work through'}
+      </p>
       {items.map((item, i) => (
         <div
           key={item.id}

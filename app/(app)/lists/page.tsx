@@ -18,21 +18,35 @@ export default async function ListsPage() {
 
   return (
     <>
-      <PageHeader title="Lists" description="Group people and companies, research them, and export to CSV for your sequencer." />
+      <PageHeader
+        title="Lists"
+        description="A list is a saved group of people and companies you build from the feed and research, so you can come back to them, export them to a spreadsheet, or send them to your CRM."
+      />
       <div className="mx-auto max-w-3xl space-y-5 p-6">
-        <Card className="animate-fade-up p-4">
+        <Card className="animate-fade-up space-y-3 p-4">
           <form action={createListAction} className="flex gap-2">
-            <Input name="name" placeholder="New list name (e.g. Q3 fintech targets)" required />
+            <Input name="name" placeholder="Name your list (e.g. Q3 fintech targets)" required />
             <Button type="submit">
-              <Plus /> Create
+              <Plus /> Create list
             </Button>
           </form>
+          <p className="text-xs text-muted-foreground">
+            Name a list here, then add people and companies to it from the feed or from a research profile using
+            the "Add to list" button. Open any list to export it or send it onward.
+          </p>
         </Card>
 
         {rows.length === 0 ? (
           <Card className="flex animate-scale-in flex-col items-center gap-3 p-12 text-center">
             <ListChecks className="size-8 text-primary" />
-            <p className="text-sm text-muted-foreground">No lists yet. Create one above, or use “Add to list” on a signal.</p>
+            <p className="text-sm font-medium">No lists yet</p>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              Lists are how you save the prospects worth following up on. Create your first one in the box above,
+              then use the "Add to list" button on any signal in the feed to drop people and companies into it.
+            </p>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/feed">Go to the feed</Link>
+            </Button>
           </Card>
         ) : (
           <div className="space-y-2">

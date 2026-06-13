@@ -97,20 +97,23 @@ export async function getCompanyProfile(orgId: string, companyId: string): Promi
   // No org-matched signals -> this company is not visible to this org.
   if (timeline.length === 0) return null;
 
-  const byTypeRows = await db
-    .select({ type: signals.type, count: sql<number>`count(*)::int` })
-    .from(signals)
-    .where(orgScope)
-    .groupBy(signals.type);
+  // byType and people are independent; run them together (the timeline above
+  // already gated visibility, so we only do this work for a visible company).
+  const [byTypeRows, peopleRows] = await Promise.all([
+    db
+      .select({ type: signals.type, count: sql<number>`count(*)::int` })
+      .from(signals)
+      .where(orgScope)
+      .groupBy(signals.type),
+    db
+      .select({ id: people.id, name: people.fullName, title: people.title })
+      .from(people)
+      .where(eq(people.companyId, companyId))
+      .orderBy(desc(people.confidence)),
+  ]);
   const byType = byTypeRows
     .filter((r): r is { type: string; count: number } => !!r.type)
     .sort((a, b) => b.count - a.count);
-
-  const peopleRows: CompanyPerson[] = await db
-    .select({ id: people.id, name: people.fullName, title: people.title })
-    .from(people)
-    .where(eq(people.companyId, companyId))
-    .orderBy(desc(people.confidence));
 
   const deptMap = new Map<string, CompanyPerson[]>();
   for (const p of peopleRows) {

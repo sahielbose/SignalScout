@@ -68,18 +68,30 @@ export function ApiKeys({ keys }: { keys: KeyRow[] }) {
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Key name (e.g. production)" />
-        <Button onClick={create} disabled={pending} className="transition-all duration-200 hover:shadow-md active:scale-[0.98]">
-          {pending ? <Loader2 className="animate-spin" /> : <Plus />} New key
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          aria-label="Name for your new API key"
+          placeholder="Name it so you remember where it's used (e.g. production)"
+        />
+        <Button onClick={create} disabled={pending} className="shrink-0 transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+          {pending ? <Loader2 className="animate-spin" /> : <Plus />} Create key
         </Button>
       </div>
 
       {fresh && (
         <div className="animate-scale-in rounded-md border border-primary/30 bg-primary/5 p-3">
-          <p className="text-xs font-medium text-primary">Copy this key now - it won&apos;t be shown again.</p>
+          <p className="text-xs font-medium text-primary">Copy this key now. For your security we won&apos;t show it again.</p>
           <div className="mt-2 flex items-center gap-2">
             <code className="flex-1 truncate rounded bg-background px-2 py-1 font-mono text-xs">{fresh}</code>
-            <Button size="icon" variant="outline" onClick={copy} className="size-8 transition-all duration-200 hover:shadow-md active:scale-[0.96]">
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={copy}
+              aria-label={copied ? 'Key copied' : 'Copy key'}
+              title={copied ? 'Copied' : 'Copy key'}
+              className="size-8 shrink-0 transition-all duration-200 hover:shadow-md active:scale-[0.96]"
+            >
               {copied ? <Check className="size-3.5 animate-pop text-primary" /> : <Copy className="size-3.5" />}
             </Button>
           </div>
@@ -88,7 +100,10 @@ export function ApiKeys({ keys }: { keys: KeyRow[] }) {
 
       <div className="divide-y rounded-md border">
         {keys.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">No API keys yet.</p>
+          <div className="p-4 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">No keys yet.</p>
+            <p className="mt-0.5 text-xs">Name a key above and select Create key to get started. You&apos;ll need one to connect Claude, Cursor, or your own scripts.</p>
+          </div>
         ) : (
           keys.map((k, i) => (
             <div key={k.id} className="flex animate-fade-up items-center gap-3 p-3 transition-colors hover:bg-muted/40" style={{ animationDelay: `${i * 50}ms` }}>
@@ -98,8 +113,11 @@ export function ApiKeys({ keys }: { keys: KeyRow[] }) {
                   <span className="text-sm font-medium">{k.name}</span>
                   {k.revokedAt && <Badge variant="muted">revoked</Badge>}
                 </div>
-                <div className="font-mono text-xs text-muted-foreground">
-                  {k.prefix}…··· · {k.lastUsedAt ? `used ${relativeTime(k.lastUsedAt)}` : 'never used'}
+                <div className="text-xs text-muted-foreground">
+                  <span className="font-mono">{k.prefix}…</span>{' '}
+                  <span className="text-muted-foreground/70">
+                    · {k.lastUsedAt ? `last used ${relativeTime(k.lastUsedAt)}` : 'not used yet'}
+                  </span>
                 </div>
               </div>
               {!k.revokedAt && <RevokeButton id={k.id} />}

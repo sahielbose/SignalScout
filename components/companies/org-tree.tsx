@@ -46,8 +46,12 @@ function seniorityRank(title: string | null): number {
 export function OrgTree({ people }: { people: CompanyPerson[] }) {
   if (people.length === 0) {
     return (
-      <Card className="animate-scale-in p-6 text-center text-xs text-muted-foreground">
-        No people associated yet. Research a person to populate the org view.
+      <Card className="animate-scale-in p-6 text-center">
+        <Users className="mx-auto mb-2 size-5 text-muted-foreground" />
+        <p className="text-xs font-medium">No people found here yet</p>
+        <p className="mx-auto mt-1 max-w-[16rem] text-xs text-muted-foreground">
+          As you research people at this company, they will show up here grouped by team so you can see who to reach out to.
+        </p>
       </Card>
     );
   }

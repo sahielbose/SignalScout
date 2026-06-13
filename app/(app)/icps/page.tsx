@@ -20,8 +20,8 @@ export default async function IcpsPage() {
   return (
     <>
       <PageHeader
-        title="Ideal Customer Profiles"
-        description="Describe who you sell to. The feed filters public signals to these profiles, and the worker only deep-researches people who match."
+        title="Who you sell to"
+        description="Tell Signal Scout the kind of customer you sell to. We then filter the live feed down to public buying moments that fit, and only build research profiles for people who match."
       />
       <Reveal>
         <IcpManager icps={icps} />

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Loader2, FileSearch, ChevronDown } from 'lucide-react';
+import { Loader2, FileSearch, ChevronDown, Github, Link2, Quote } from 'lucide-react';
 import { researchAction, type ResearchActionResult } from '@/lib/research/actions';
 import { DossierPanel } from './dossier-panel';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,20 @@ export function ResearchForm({ defaults }: { defaults?: { name?: string; company
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
+      <Card className="border-primary/15 bg-primary/[0.03] p-4">
+        <div className="flex items-start gap-2.5 text-sm">
+          <FileSearch className="mt-0.5 size-4 shrink-0 text-primary" />
+          <div className="space-y-1.5">
+            <p className="font-medium">How this works</p>
+            <ol className="list-inside list-decimal space-y-0.5 text-muted-foreground">
+              <li>Enter a person&apos;s name (a company helps us find the right one).</li>
+              <li>We read their public footprint: GitHub, talks, articles, and more.</li>
+              <li>You get a research profile where every fact links to its source.</li>
+            </ol>
+          </div>
+        </div>
+      </Card>
+
       <Card className="p-5">
         <form
           onSubmit={(e) => {
@@ -54,18 +68,28 @@ export function ResearchForm({ defaults }: { defaults?: { name?: string; company
             onClick={() => setAdvanced((a) => !a)}
             className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ChevronDown className={`size-3 transition-transform duration-200 ${advanced ? 'rotate-180' : ''}`} /> Strong keys (optional)
+            <ChevronDown className={`size-3 transition-transform duration-200 ${advanced ? 'rotate-180' : ''}`} /> Add a profile link for a stronger match (optional)
           </button>
           {advanced && (
-            <div className="grid animate-fade-down gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="li">LinkedIn URL</Label>
-                <Input id="li" value={linkedinUrl} onChange={(e) => setLinkedin(e.target.value)} placeholder="linkedin.com/in/…" />
-                <p className="text-[0.7rem] text-muted-foreground">Used as an identity key only - never scraped.</p>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="gh">GitHub handle</Label>
-                <Input id="gh" value={githubLogin} onChange={(e) => setGithub(e.target.value)} placeholder="rauchg" />
+            <div className="animate-fade-down space-y-3">
+              <p className="text-xs text-muted-foreground">
+                These help us make sure we found the right person. A GitHub handle gives the best, fully-sourced result because we can read their public work directly.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="gh" className="flex items-center gap-1.5">
+                    <Github className="size-3.5 text-muted-foreground" /> GitHub handle <span className="font-normal text-primary">best result</span>
+                  </Label>
+                  <Input id="gh" value={githubLogin} onChange={(e) => setGithub(e.target.value)} placeholder="rauchg" />
+                  <p className="text-[0.7rem] text-muted-foreground">We read their public code, talks, and stars to fully source the profile.</p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="li" className="flex items-center gap-1.5">
+                    <Link2 className="size-3.5 text-muted-foreground" /> LinkedIn URL
+                  </Label>
+                  <Input id="li" value={linkedinUrl} onChange={(e) => setLinkedin(e.target.value)} placeholder="linkedin.com/in/…" />
+                  <p className="text-[0.7rem] text-muted-foreground">Used only to confirm the right person. We never scrape LinkedIn.</p>
+                </div>
               </div>
             </div>
           )}
@@ -120,7 +144,25 @@ export function ResearchForm({ defaults }: { defaults?: { name?: string; company
 
       {res?.ok && res.result && (
         <Card className="animate-scale-in p-5">
-          <DossierPanel dossier={res.result.dossier} meta={{ model: res.result.model, cached: res.result.cached, toolCalls: res.result.toolCalls }} />
+          <DossierPanel
+            dossier={res.result.dossier}
+            personId={res.result.personId ?? undefined}
+            meta={{ model: res.result.model, cached: res.result.cached, toolCalls: res.result.toolCalls }}
+          />
+        </Card>
+      )}
+
+      {!pending && !res && (
+        <Card className="animate-fade-up border-dashed bg-card/40 p-8 text-center">
+          <FileSearch className="mx-auto size-7 text-muted-foreground/60" />
+          <p className="mt-3 text-sm font-medium">Start by entering a name above</p>
+          <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+            We build a research profile from public sources only, and every fact links back to where we found it. Add a GitHub handle for the strongest, fully-sourced result.
+          </p>
+          <p className="mx-auto mt-3 flex max-w-md items-start justify-center gap-2 text-xs text-muted-foreground">
+            <Quote className="mt-0.5 size-3 shrink-0" />
+            Not sure who to try? Start with a name like &ldquo;Guillermo Rauch&rdquo; at &ldquo;Vercel&rdquo;.
+          </p>
         </Card>
       )}
     </div>

@@ -1,7 +1,37 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql, arrayOverlaps } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
-import { people, companies, dossiers } from '@/lib/db/schema';
+import { people, companies, dossiers, signals, lists, listMembers } from '@/lib/db/schema';
+import { getOrgIcpIds } from '@/lib/feed/queries';
 import type { GuardedDossier } from './dossier';
+
+/**
+ * Tenancy: the people table has no org column, so a person is only visible to
+ * an org it has an actual link to (a dossier, a list membership, or an
+ * org-matched signal). Returns false so callers can fail closed.
+ */
+async function personVisibleToOrg(orgId: string, personId: string): Promise<boolean> {
+  const [d] = await db
+    .select({ ok: sql<number>`1` })
+    .from(dossiers)
+    .where(and(eq(dossiers.personId, personId), eq(dossiers.orgId, orgId)))
+    .limit(1);
+  if (d) return true;
+  const [lm] = await db
+    .select({ ok: sql<number>`1` })
+    .from(listMembers)
+    .innerJoin(lists, eq(listMembers.listId, lists.id))
+    .where(and(eq(listMembers.personId, personId), eq(lists.orgId, orgId)))
+    .limit(1);
+  if (lm) return true;
+  const orgIcpIds = await getOrgIcpIds(orgId);
+  if (orgIcpIds.length === 0) return false;
+  const [sg] = await db
+    .select({ ok: sql<number>`1` })
+    .from(signals)
+    .where(and(eq(signals.personId, personId), arrayOverlaps(signals.matchedIcpIds, orgIcpIds)))
+    .limit(1);
+  return !!sg;
+}
 
 export interface PersonWithContext {
   person: typeof people.$inferSelect;
@@ -14,6 +44,8 @@ export interface PersonWithContext {
 export async function getPersonWithDossier(orgId: string, personId: string): Promise<PersonWithContext | null> {
   const [p] = await db.select().from(people).where(eq(people.id, personId)).limit(1);
   if (!p) return null;
+  // Fail closed: do not expose a person's identity to an org with no link to them.
+  if (!(await personVisibleToOrg(orgId, personId))) return null;
 
   let companyName: string | null = null;
   let companyDomain: string | null = null;

@@ -11,8 +11,8 @@ export default async function ResearchPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <PageHeader
-        title="Deep research"
-        description="Point it at a person - every fact in the dossier carries a clickable source. Uncited claims are dropped; low-confidence results are flagged, never faked."
+        title="Research a person"
+        description="Type someone's name and we read their public footprint to build a research profile where every fact links to the source it came from."
       />
       <div className="animate-fade-up">
         <ResearchForm defaults={{ name: sp.name, company: sp.company, domain: sp.domain }} />

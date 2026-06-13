@@ -133,15 +133,20 @@ export async function getFeed(
     snoozedUntil: r.snoozedUntil ?? null,
   }));
 
-  const totalRow = (
-    await db
-      .select({ total: sql<number>`count(*)::int` })
-      .from(signals)
-      .leftJoin(signalStatus, statusJoinOn)
-      .where(where)
-  )[0];
+  // Only the first page needs the total; the client ignores it afterward, so
+  // skip the extra count(*) on every infinite-scroll fetch.
+  const totalRow =
+    page === 0
+      ? (
+          await db
+            .select({ total: sql<number>`count(*)::int` })
+            .from(signals)
+            .leftJoin(signalStatus, statusJoinOn)
+            .where(where)
+        )[0]
+      : undefined;
 
-  return { items, hasMore, total: totalRow?.total ?? 0 };
+  return { items, hasMore, total: totalRow?.total ?? items.length };
 }
 
 /** Distinct facets present in the org's matched feed (for the filter bar). */

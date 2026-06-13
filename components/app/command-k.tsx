@@ -163,7 +163,7 @@ export function CommandK() {
           <div className="scroll-thin max-h-[min(60vh,28rem)] overflow-y-auto p-2">
             {!term && (
               <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                Type to search your workspace.
+                Start typing to jump to any person, company, or signal in your workspace.
               </p>
             )}
 
@@ -218,6 +218,30 @@ export function CommandK() {
                   </div>
                 );
               })}
+          </div>
+
+          <div className="flex items-center gap-3 border-t border-border px-4 py-2 text-[0.7rem] text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-medium">
+                &#8593;
+              </kbd>
+              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-medium">
+                &#8595;
+              </kbd>
+              to move
+            </span>
+            <span className="flex items-center gap-1">
+              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-medium">
+                &#8629;
+              </kbd>
+              to open
+            </span>
+            <span className="ml-auto flex items-center gap-1">
+              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-medium">
+                Esc
+              </kbd>
+              to close
+            </span>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

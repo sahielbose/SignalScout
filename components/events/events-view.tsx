@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CalendarDays, ExternalLink, FileSearch, MapPin, Sparkles, UserCheck } from 'lucide-react';
+import { CalendarDays, Clock, ExternalLink, FileSearch, Sparkles, UserCheck } from 'lucide-react';
 import { SOURCE_LABELS, type SourceName } from '@/lib/types';
 import { strengthTone } from '@/lib/feed/signal-style';
 import type { EventItem } from '@/lib/events/queries';
@@ -18,9 +18,9 @@ function whyItMatters(item: EventItem): string {
   if (item.justification) return item.justification;
   const subject = item.companyName ?? item.personName;
   if (subject) {
-    return `${subject} is connected to this event and overlaps with your ICP, so the attendee pool likely includes warm contacts worth prioritizing.`;
+    return `${subject} is tied to this event and looks like the kind of customer you sell to, so the people going are worth a closer look before you attend.`;
   }
-  return 'This event matched one of your active ICPs, so its attendees are worth scanning for warm contacts before you go.';
+  return 'This event fits the kind of customer you sell to, so the people going are worth scanning for good contacts before you attend.';
 }
 
 function EventCard({ item }: { item: EventItem }) {
@@ -30,6 +30,7 @@ function EventCard({ item }: { item: EventItem }) {
   const when = item.date ?? item.ingestedAt;
   const name = item.title || item.companyName || 'Event';
   const sourceLabel = SOURCE_LABELS[item.source as SourceName] ?? item.source;
+  const summary = cleanSummary(item);
 
   return (
     <article
@@ -45,17 +46,20 @@ function EventCard({ item }: { item: EventItem }) {
         </span>
         <span className="rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground">{sourceLabel}</span>
         {prioritized && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-beacon/15 px-2 py-0.5 font-medium text-beacon">
+          <span
+            className="inline-flex items-center gap-1 rounded-full bg-beacon/15 px-2 py-0.5 font-medium text-beacon"
+            title="Strong fit for the kind of customer you sell to, worth your time"
+          >
             <Sparkles className="size-3" />
-            Prioritized
+            Worth your time
           </span>
         )}
         <span className="text-muted-foreground">·</span>
         <span className="inline-flex items-center gap-1 text-muted-foreground">
-          <MapPin className="size-3" />
+          <Clock className="size-3" />
           {relativeTime(when)}
         </span>
-        <div className="ml-auto flex items-center gap-2" title={`ICP match strength ${pct}%`}>
+        <div className="ml-auto flex items-center gap-2" title={`${pct}% sign this fits the kind of customer you sell to`}>
           <div className="hidden h-1.5 w-16 overflow-hidden rounded-full bg-muted sm:block">
             <div
               className={cn('h-full rounded-full transition-[width] duration-500 ease-out', prioritized ? 'bg-beacon' : 'bg-primary')}
@@ -80,7 +84,7 @@ function EventCard({ item }: { item: EventItem }) {
             {item.companyDomain ? ` · ${item.companyDomain}` : ''}
           </div>
         )}
-        {cleanSummary(item) && <p className="mt-1 text-sm text-muted-foreground">{cleanSummary(item)}</p>}
+        {summary && <p className="mt-1 text-sm text-muted-foreground">{summary}</p>}
         <p className="mt-2 text-xs italic text-muted-foreground/80">
           <span className="font-medium not-italic text-foreground/70">Why it matters: </span>
           {whyItMatters(item)}
@@ -89,9 +93,12 @@ function EventCard({ item }: { item: EventItem }) {
 
       {item.personId && item.personName && (
         <div className="mt-3 rounded-md border border-beacon/30 bg-beacon/5 p-3">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-beacon">
+          <div
+            className="flex items-center gap-1.5 text-xs font-medium text-beacon"
+            title="Going to this event and already matches the kind of customer you sell to"
+          >
             <UserCheck className="size-3.5" />
-            Prioritized attendee
+            Worth meeting here
           </div>
           <div className="mt-1 flex items-center justify-between gap-2">
             <div className="min-w-0">
@@ -130,13 +137,17 @@ export function EventsView({ events }: { events: EventItem[] }) {
       <section className="rounded-lg border border-beacon/30 bg-beacon/5 p-4">
         <div className="flex items-center gap-2 text-sm font-medium text-beacon">
           <UserCheck className="size-4" />
-          Attendee-level prioritization
+          Who is worth meeting
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Conference prep is not about the venue, it is about who is in the room. We surface the warm contacts already
-          matching your ICP so you can plan the conversations that matter before you walk in. Events linked to a person
-          you already track are flagged as prioritized attendees below.
+          What matters at an event is not the venue, it is who is in the room. Below we pull out the people going who
+          already look like the kind of customer you sell to, so you can plan those conversations before you walk in.
         </p>
+        <ol className="mt-2 space-y-0.5 text-xs text-muted-foreground/90">
+          <li>1. Scan the events below for ones that fit your customers.</li>
+          <li>2. Note the people flagged as worth meeting at each one.</li>
+          <li>3. Open Research on a person to get a sourced profile before you go.</li>
+        </ol>
         {withAttendees.length > 0 ? (
           <ul className="mt-3 flex flex-wrap gap-2">
             {withAttendees.map((e) => (
@@ -154,8 +165,8 @@ export function EventsView({ events }: { events: EventItem[] }) {
           </ul>
         ) : (
           <p className="mt-2 text-xs text-muted-foreground/80">
-            No ICP-matched attendees linked to these events yet. As people are resolved against event signals, they will
-            appear here as prioritized contacts.
+            No matching people linked to these events yet. As we connect attendees to the customers you sell to, they
+            will show up here as people worth meeting.
           </p>
         )}
       </section>
