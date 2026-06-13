@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /*
- * Signal Scout brand — "beacon / radar" system.
+ * Signal Scout brand, the "beacon / radar" system.
  * Dark-first (html.dark in layout). :root holds the light theme; .dark overrides.
  */
 @layer base {
@@ -56,6 +56,68 @@
     --beacon: 36 96% 56%;
     --beacon-foreground: 36 96% 9%;
     --beacon-muted: 36 50% 22%;
+  }
+}
+
+@layer base {
+  /*
+   * Warm editorial marketing theme. Scoped to the (marketing) route-group
+   * wrapper so it overrides the inherited .dark variables for that subtree
+   * only. Tokens are consumed as hsl(var(--x)) everywhere, so redefining them
+   * here recolors every nested Button/Card without per-component overrides.
+   */
+  .marketing {
+    --background: 35 40% 92%;
+    --foreground: 25 15% 12%;
+    --card: 35 44% 96%;
+    --card-foreground: 25 15% 12%;
+    --popover: 35 44% 96%;
+    --popover-foreground: 25 15% 12%;
+    --muted: 33 28% 86%;
+    --muted-foreground: 25 12% 38%;
+    --secondary: 33 30% 88%;
+    --secondary-foreground: 25 15% 18%;
+    --accent: 25 45% 38%;
+    --accent-foreground: 35 44% 96%;
+    --primary: 25 18% 14%;
+    --primary-foreground: 35 44% 96%;
+    --destructive: 0 60% 42%;
+    --destructive-foreground: 35 44% 96%;
+    --border: 30 20% 80%;
+    --input: 30 20% 78%;
+    --ring: 25 45% 38%;
+    --radius: 0.7rem;
+
+    /* marketing-only extras */
+    --paper-dot: 25 35% 55%;
+    --chip-bg: 25 42% 90%;
+    --chip-fg: 25 50% 30%;
+    --terracotta: 14 55% 52%;
+
+    /* dark charcoal integrations section */
+    --ink-section: 25 12% 12%;
+    --ink-section-foreground: 35 30% 90%;
+    --ink-section-muted: 33 12% 66%;
+    --ink-section-border: 30 10% 26%;
+    --ink-section-card: 25 12% 16%;
+
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  /* faint dotted dot-grid texture behind the hero */
+  .marketing .paper-dots {
+    background-image: radial-gradient(hsl(var(--paper-dot) / 0.16) 1px, transparent 1.4px);
+    background-size: 22px 22px;
+    background-position: -11px -11px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 72% 28%, #000 35%, transparent 78%);
+    mask-image: radial-gradient(ellipse 80% 70% at 72% 28%, #000 35%, transparent 78%);
+  }
+
+  /* top fade so the signal feed dissolves at its upper edge */
+  .marketing .feed-fade {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 100%);
   }
 }
 

@@ -15,10 +15,10 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Signal Scout — real-time prospect signal intelligence',
+  title: 'SignalScout, real-time prospect signal intelligence',
   description:
     'Watch free public sources for buying signals about your ideal customers, filter them by ICP, and generate cited research dossiers on people.',
-  applicationName: 'Signal Scout',
+  applicationName: 'SignalScout',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
