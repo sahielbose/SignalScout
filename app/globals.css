@@ -189,3 +189,10 @@ html {
     scroll-behavior: auto !important;
   }
 }
+
+/* Squared aesthetic: no rounded corners anywhere, across the app and marketing. */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
