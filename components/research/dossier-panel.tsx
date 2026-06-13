@@ -1,17 +1,177 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, type ReactNode } from 'react';
 import Link from 'next/link';
-import { ExternalLink, ShieldAlert, ShieldCheck, Quote, Sparkles, MessageSquare, Users, Loader2, ArrowRight, Mail, Copy, Check } from 'lucide-react';
+import { ExternalLink, ShieldAlert, ShieldCheck, Quote, Sparkles, MessageSquare, Users, Loader2, ArrowRight, Mail, Copy, Check, ChevronDown } from 'lucide-react';
 import type { GuardedDossier } from '@/lib/research/dossier';
 import type { Fact } from '@/lib/types';
 import { findSimilarAction, type SimilarActionResult } from '@/lib/research/actions';
 import { draftEmailAction } from '@/lib/research/email-actions';
 import type { EmailDraftResult } from '@/lib/research/email-draft';
 import { toast } from '@/lib/toast';
+import { usePref } from '@/lib/hooks/use-pref';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+
+/** The major sections of the profile that can be folded away, in display order. */
+const SECTIONS = ['summary', 'facts', 'outreach', 'tools', 'sources'] as const;
+type SectionKey = (typeof SECTIONS)[number];
+
+/**
+ * Hook that owns the open/closed state of every collapsible section, each
+ * remembered per-section in localStorage (via usePref) so the way a user likes
+ * to read profiles sticks across visits and across people. Returns helpers to
+ * read a section, toggle one, and expand/collapse them all at once.
+ */
+function useSectionPrefs() {
+  const prefs: Record<SectionKey, [boolean, (v: boolean) => void]> = {
+    summary: usePref<boolean>('person.section.summary', true),
+    facts: usePref<boolean>('person.section.facts', true),
+    outreach: usePref<boolean>('person.section.outreach', true),
+    tools: usePref<boolean>('person.section.tools', true),
+    sources: usePref<boolean>('person.section.sources', false),
+  };
+  const isOpen = (k: SectionKey) => prefs[k][0];
+  const toggle = (k: SectionKey) => prefs[k][1](!prefs[k][0]);
+  const setAll = (open: boolean) => {
+    for (const k of SECTIONS) prefs[k][1](open);
+  };
+  const allOpen = SECTIONS.every((k) => prefs[k][0]);
+  return { isOpen, toggle, setAll, allOpen };
+}
+
+/** A major section of the profile that can be folded away. Open state lives in the parent. */
+function CollapsibleSection({
+  title,
+  hint,
+  count,
+  open,
+  onToggle,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  count?: number;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="rounded-md border bg-card">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 rounded-md px-4 py-3 text-left transition-colors hover:bg-accent/40"
+        title={open ? `Hide ${title.toLowerCase()}` : `Show ${title.toLowerCase()}`}
+      >
+        <ChevronDown
+          className={cn('size-4 shrink-0 text-muted-foreground transition-transform duration-200', open ? '' : '-rotate-90')}
+        />
+        <span className="text-sm font-semibold">{title}</span>
+        {typeof count === 'number' && (
+          <Badge variant="secondary" className="ml-0.5">
+            {count}
+          </Badge>
+        )}
+        {hint && <span className="ml-auto hidden text-xs text-muted-foreground sm:block">{hint}</span>}
+      </button>
+      {open && <div className="border-t px-4 py-3">{children}</div>}
+    </div>
+  );
+}
+
+/**
+ * Render the whole research profile as plain text a user can paste into a CRM,
+ * a doc, or an email. Every fact keeps its source link so the paste stays cited.
+ */
+function dossierToPlainText(dossier: GuardedDossier): string {
+  const { identity, structured, tags, sources } = dossier;
+  const lines: string[] = [];
+  const pct = Math.round((dossier.confidence ?? 0) * 100);
+
+  lines.push(identity.full_name);
+  const headline = [identity.title, identity.company, identity.location].filter(Boolean).join(' · ');
+  if (headline) lines.push(headline);
+  lines.push(`${pct}% of the facts below are backed by a public source.`);
+  if (tags.length) lines.push(`Tags: ${tags.join(', ')}`);
+  lines.push('');
+
+  if (dossier.summary) {
+    lines.push('SUMMARY');
+    lines.push(dossier.summary);
+    lines.push('');
+  }
+
+  const factLine = (label: string, f?: Fact) => {
+    if (f) lines.push(`- ${label}: ${f.value} (${f.source_url})`);
+  };
+  const factListLines = (label: string, fs?: Fact[]) => {
+    for (const f of fs ?? []) lines.push(`- ${label}: ${f.value} (${f.source_url})`);
+  };
+  const hasFacts =
+    structured.role ||
+    structured.company ||
+    structured.github_contributions ||
+    structured.focus ||
+    (structured.talks ?? []).length ||
+    (structured.publications ?? []).length ||
+    (structured.starred_repos ?? []).length;
+  if (hasFacts) {
+    lines.push('FACTS WE FOUND (each links to its source)');
+    factLine('Role', structured.role);
+    factLine('Company', structured.company);
+    factLine('GitHub', structured.github_contributions);
+    factLine('Focus', structured.focus);
+    factListLines('Talk', structured.talks);
+    factListLines('Publication', structured.publications);
+    factListLines('Starred', structured.starred_repos);
+    lines.push('');
+  }
+
+  if (dossier.why_they_care) {
+    lines.push("WHY THEY'D CARE");
+    lines.push(dossier.why_they_care);
+    lines.push('');
+  }
+  if (dossier.suggested_opener) {
+    lines.push('SUGGESTED OPENER');
+    lines.push(dossier.suggested_opener);
+    lines.push('');
+  }
+  if (sources.length) {
+    lines.push(`SOURCES (${sources.length})`);
+    sources.forEach((s, i) => lines.push(`${i + 1}. ${s.claim} - ${s.url}`));
+    lines.push('');
+  }
+  return lines.join('\n').trim();
+}
+
+/** A small copy button that flips to a check for a moment after a successful copy. */
+function CopyButton({ text, label, copiedLabel, title }: { text: string; label: string; copiedLabel?: string; title?: string }) {
+  const [copied, setCopied] = useState(false);
+  const run = async () => {
+    if (!text.trim()) {
+      toast('Nothing to copy yet', 'default');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast(`Copied ${label.toLowerCase()} to clipboard`, 'success');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast('Could not copy to clipboard', 'error');
+    }
+  };
+  return (
+    <Button variant="outline" size="sm" onClick={run} title={title} className="shrink-0">
+      {copied ? <Check className="text-primary" /> : <Copy />}
+      {copied ? copiedLabel ?? 'Copied' : label}
+    </Button>
+  );
+}
 
 function SourceLink({ url }: { url: string }) {
   let host = url;
@@ -240,6 +400,8 @@ export function DossierPanel({
   const { identity, structured, tags, sources } = dossier;
   const pct = Math.round((dossier.confidence ?? 0) * 100);
   const hasFacts = sources.length > 0;
+  const fullText = dossierToPlainText(dossier);
+  const sec = useSectionPrefs();
 
   return (
     <div className="animate-scale-in space-y-5">
@@ -276,6 +438,35 @@ export function DossierPanel({
         </div>
       </div>
 
+      {/* copy options: the whole profile, or just the first line for a message */}
+      <div className="flex flex-wrap items-center gap-2">
+        <CopyButton
+          text={fullText}
+          label="Copy profile"
+          copiedLabel="Profile copied"
+          title="Copy the whole profile as plain text (facts keep their source links) to paste into a CRM, doc, or email"
+        />
+        <CopyButton
+          text={dossier.suggested_opener ?? ''}
+          label="Copy opener"
+          copiedLabel="Opener copied"
+          title="Copy just the suggested first line you can drop into your message"
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => sec.setAll(!sec.allOpen)}
+          title={sec.allOpen ? 'Fold every section away' : 'Open every section'}
+          className="shrink-0"
+        >
+          <ChevronDown className={cn('transition-transform duration-200', sec.allOpen ? '' : '-rotate-90')} />
+          {sec.allOpen ? 'Collapse all' : 'Expand all'}
+        </Button>
+        <span className="text-xs text-muted-foreground">
+          Tip: each section below folds away, and Signal Scout remembers how you like to read profiles.
+        </span>
+      </div>
+
       {/* plain-English "what is this" helper */}
       <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
         This research profile is built from public sources only. Every fact below links to where we found it, so you can
@@ -290,63 +481,103 @@ export function DossierPanel({
         </div>
       )}
 
-      {/* summary */}
+      {/* summary (narrative) */}
       {dossier.summary && (
-        <div className="flex gap-2 rounded-md border bg-card p-4">
-          <Quote className="size-4 shrink-0 text-muted-foreground" />
-          <p className="text-sm leading-relaxed text-muted-foreground">{dossier.summary}</p>
-        </div>
+        <CollapsibleSection
+          title="Narrative summary"
+          hint="A short read on this person"
+          open={sec.isOpen('summary')}
+          onToggle={() => sec.toggle('summary')}
+        >
+          <div className="flex gap-2">
+            <Quote className="size-4 shrink-0 text-muted-foreground" />
+            <p className="text-sm leading-relaxed text-muted-foreground">{dossier.summary}</p>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* structured cited facts */}
-      {hasFacts ? (
-        <div className="rounded-md border bg-card px-4">
-          <div className="border-b py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Facts we found (each links to its source)
+      <CollapsibleSection
+        title="Sourced facts"
+        hint="Each links to where we found it"
+        count={hasFacts ? sources.length : 0}
+        open={sec.isOpen('facts')}
+        onToggle={() => sec.toggle('facts')}
+      >
+        {hasFacts ? (
+          <div>
+            <FactRow label="Role" fact={structured.role} index={0} />
+            <FactRow label="Company" fact={structured.company} index={1} />
+            <FactRow label="GitHub" fact={structured.github_contributions} index={2} />
+            <FactRow label="Focus" fact={structured.focus} index={3} />
+            <FactList label="Talks" facts={structured.talks} index={4} />
+            <FactList label="Publications" facts={structured.publications} index={5} />
+            <FactList label="Starred" facts={structured.starred_repos} index={6} />
           </div>
-          <FactRow label="Role" fact={structured.role} index={0} />
-          <FactRow label="Company" fact={structured.company} index={1} />
-          <FactRow label="GitHub" fact={structured.github_contributions} index={2} />
-          <FactRow label="Focus" fact={structured.focus} index={3} />
-          <FactList label="Talks" facts={structured.talks} index={4} />
-          <FactList label="Publications" facts={structured.publications} index={5} />
-          <FactList label="Starred" facts={structured.starred_repos} index={6} />
-        </div>
-      ) : (
-        <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
-          We could not find any public facts to link to for this person yet. Adding their GitHub handle or LinkedIn URL and
-          refreshing usually helps.
-        </div>
-      )}
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            We could not find any public facts to link to for this person yet. Adding their GitHub handle or LinkedIn URL
+            and refreshing usually helps.
+          </p>
+        )}
+      </CollapsibleSection>
 
-      {/* outreach */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-md border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
-            <Sparkles className="size-3.5" /> Why they&apos;d care
+      {/* outreach: why they'd care + suggested opener */}
+      <CollapsibleSection
+        title="Outreach angle"
+        hint="Why they'd care, and a first line"
+        open={sec.isOpen('outreach')}
+        onToggle={() => sec.toggle('outreach')}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-md border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
+              <Sparkles className="size-3.5" /> Why they&apos;d care
+            </div>
+            <p className="text-[0.7rem] text-muted-foreground">An angle for your outreach, based on the facts above.</p>
+            <p className="mt-1.5 text-sm">{dossier.why_they_care}</p>
           </div>
-          <p className="text-[0.7rem] text-muted-foreground">An angle for your outreach, based on the facts above.</p>
-          <p className="mt-1.5 text-sm">{dossier.why_they_care}</p>
-        </div>
-        <div className="rounded-md border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-beacon">
-            <MessageSquare className="size-3.5" /> Suggested opener
+          <div className="rounded-md border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-medium text-beacon">
+                <MessageSquare className="size-3.5" /> Suggested opener
+              </div>
+              <CopyButton
+                text={dossier.suggested_opener ?? ''}
+                label="Copy"
+                title="Copy just this opening line into your message"
+              />
+            </div>
+            <p className="text-[0.7rem] text-muted-foreground">A first line you can copy into your message.</p>
+            <p className="mt-1.5 text-sm">{dossier.suggested_opener}</p>
           </div>
-          <p className="text-[0.7rem] text-muted-foreground">A first line you can copy into your message.</p>
-          <p className="mt-1.5 text-sm">{dossier.suggested_opener}</p>
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* outreach email draft + lookalike prospecting (only with a persisted person to anchor on) */}
-      {personId && <DraftEmail personId={personId} />}
-      {personId && <SimilarPeople personId={personId} />}
+      {personId && (
+        <CollapsibleSection
+          title="Outreach tools"
+          hint="Draft an email, find similar people"
+          open={sec.isOpen('tools')}
+          onToggle={() => sec.toggle('tools')}
+        >
+          <div className="space-y-3">
+            <DraftEmail personId={personId} />
+            <SimilarPeople personId={personId} />
+          </div>
+        </CollapsibleSection>
+      )}
 
       {/* sources */}
       {sources.length > 0 && (
-        <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Sources ({sources.length})
-          </h3>
+        <CollapsibleSection
+          title="Sources"
+          count={sources.length}
+          hint="Every link we used"
+          open={sec.isOpen('sources')}
+          onToggle={() => sec.toggle('sources')}
+        >
           <ol className="space-y-1.5">
             {sources.map((s, i) => (
               <li key={i} className="flex animate-fade-up gap-2 text-xs" style={{ animationDelay: `${i * 40}ms` }}>
@@ -358,7 +589,7 @@ export function DossierPanel({
               </li>
             ))}
           </ol>
-        </div>
+        </CollapsibleSection>
       )}
 
       {meta && (

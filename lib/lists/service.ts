@@ -1,7 +1,62 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from '@/lib/db/client';
 import { lists, listMembers, people, companies } from '@/lib/db/schema';
+
+/**
+ * The columns a user can choose to include in a CSV export, in their natural
+ * order. `key` is the stable token used in the export URL (`?cols=...`); `label`
+ * is the human header written into the file; `value` pulls the cell from a row.
+ * Kept here so the picker on the detail page and the export route never drift.
+ */
+export const LIST_EXPORT_COLUMNS = [
+  { key: 'type', label: 'type', value: (m: ListMemberRow) => m.kind },
+  { key: 'name', label: 'name', value: (m: ListMemberRow) => m.name },
+  { key: 'title', label: 'title', value: (m: ListMemberRow) => m.title },
+  { key: 'company', label: 'company', value: (m: ListMemberRow) => m.companyName },
+  { key: 'domain', label: 'domain', value: (m: ListMemberRow) => m.domain },
+  { key: 'linkedin_url', label: 'linkedin_url', value: (m: ListMemberRow) => m.linkedinUrl },
+  { key: 'github_login', label: 'github_login', value: (m: ListMemberRow) => m.githubLogin },
+  { key: 'location', label: 'location', value: (m: ListMemberRow) => m.location },
+  { key: 'added_at', label: 'added_at', value: (m: ListMemberRow) => m.addedAt.toISOString() },
+] as const;
+
+export type ExportColumnKey = (typeof LIST_EXPORT_COLUMNS)[number]['key'];
+
+const EXPORT_COLUMN_KEYS = LIST_EXPORT_COLUMNS.map((c) => c.key) as readonly ExportColumnKey[];
+
+/** Always keep at least the name column so an export is never blank. */
+export const DEFAULT_EXPORT_COLUMNS: ExportColumnKey[] = [...EXPORT_COLUMN_KEYS];
+
+/**
+ * Validate a requested column list (comma-separated `?cols=` value). Unknown
+ * tokens are dropped; order follows the canonical column order; an empty or
+ * missing request falls back to every column so a stray link still works.
+ */
+export function parseExportColumns(raw: string | null | undefined): ExportColumnKey[] {
+  if (!raw) return [...DEFAULT_EXPORT_COLUMNS];
+  const wanted = new Set(
+    raw
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
+  const picked = EXPORT_COLUMN_KEYS.filter((k) => wanted.has(k));
+  return picked.length > 0 ? picked : [...DEFAULT_EXPORT_COLUMNS];
+}
+
+/** Build the (headers, rows) pair for `toCsv`, honoring the chosen columns. */
+export function buildExportTable(
+  members: ListMemberRow[],
+  cols: ExportColumnKey[],
+): { headers: string[]; rows: (string | null)[][] } {
+  const chosen = LIST_EXPORT_COLUMNS.filter((c) => cols.includes(c.key));
+  const use = chosen.length > 0 ? chosen : LIST_EXPORT_COLUMNS;
+  return {
+    headers: use.map((c) => c.label),
+    rows: members.map((m) => use.map((c) => c.value(m))),
+  };
+}
 
 export async function createList(orgId: string, name: string) {
   const [row] = await db.insert(lists).values({ orgId, name: name.trim() || 'Untitled list' }).returning();
@@ -28,7 +83,15 @@ export async function getList(orgId: string, id: string) {
   return row ?? null;
 }
 
-export async function listLists(orgId: string) {
+/** How the index page orders the user's lists. */
+export type ListSort = 'recent' | 'name';
+
+export function parseListSort(raw: unknown): ListSort {
+  return raw === 'name' ? 'name' : 'recent';
+}
+
+export async function listLists(orgId: string, sort: ListSort = 'recent') {
+  const orderBy = sort === 'name' ? asc(sql`lower(${lists.name})`) : desc(lists.createdAt);
   return db
     .select({
       id: lists.id,
@@ -38,7 +101,7 @@ export async function listLists(orgId: string) {
     })
     .from(lists)
     .where(eq(lists.orgId, orgId))
-    .orderBy(desc(lists.createdAt));
+    .orderBy(orderBy);
 }
 
 async function assertOwns(orgId: string, listId: string): Promise<boolean> {
@@ -89,9 +152,41 @@ export interface ListMemberRow {
   addedAt: Date;
 }
 
-export async function getListMembers(orgId: string, listId: string): Promise<ListMemberRow[]> {
+/** Which kinds of saved entries to show on the detail page. */
+export type MemberKindFilter = 'all' | 'person' | 'company';
+/** How the detail page orders saved entries. */
+export type MemberSort = 'recent' | 'name';
+
+export function parseMemberKind(raw: unknown): MemberKindFilter {
+  return raw === 'person' || raw === 'company' ? raw : 'all';
+}
+
+export function parseMemberSort(raw: unknown): MemberSort {
+  return raw === 'name' ? 'name' : 'recent';
+}
+
+export interface MemberQueryOptions {
+  kind?: MemberKindFilter;
+  sort?: MemberSort;
+}
+
+export async function getListMembers(
+  orgId: string,
+  listId: string,
+  opts: MemberQueryOptions = {},
+): Promise<ListMemberRow[]> {
   if (!(await assertOwns(orgId, listId))) return [];
+  const kind = opts.kind ?? 'all';
+  const sort = opts.sort ?? 'recent';
   const personCompany = alias(companies, 'person_company');
+
+  // The kind filter is applied in SQL so we never ship rows we will not show.
+  const where =
+    kind === 'person'
+      ? and(eq(listMembers.listId, listId), sql`${listMembers.personId} is not null`)
+      : kind === 'company'
+        ? and(eq(listMembers.listId, listId), sql`${listMembers.companyId} is not null`)
+        : eq(listMembers.listId, listId);
 
   const rows = await db
     .select({
@@ -113,10 +208,10 @@ export async function getListMembers(orgId: string, listId: string): Promise<Lis
     .leftJoin(people, eq(listMembers.personId, people.id))
     .leftJoin(personCompany, eq(people.companyId, personCompany.id))
     .leftJoin(companies, eq(listMembers.companyId, companies.id))
-    .where(eq(listMembers.listId, listId))
+    .where(where)
     .orderBy(desc(listMembers.addedAt));
 
-  return rows.map((r): ListMemberRow => {
+  const mapped = rows.map((r): ListMemberRow => {
     if (r.personId) {
       return {
         memberId: r.memberId,
@@ -146,4 +241,11 @@ export async function getListMembers(orgId: string, listId: string): Promise<Lis
       addedAt: r.addedAt,
     };
   });
+
+  // "Name" sorts across both kinds (the display name lives in different tables),
+  // so do it after mapping. "Recent" already comes ordered from SQL.
+  if (sort === 'name') {
+    mapped.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+  }
+  return mapped;
 }

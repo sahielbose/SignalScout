@@ -34,7 +34,7 @@ async function main() {
   secret = hook!.secret;
 
   const ok = await sendWebhook(
-    { id: hook!.id, orgId: org!.id, url, secret, events: ['signal.created'], active: true },
+    { id: hook!.id, orgId: org!.id, url, secret, events: ['signal.created'], filters: {}, active: true },
     'signal.created',
     { signals: [{ company: 'TestCo', type: 'funding', strength: 0.9 }] },
   );

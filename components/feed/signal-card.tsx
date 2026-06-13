@@ -33,17 +33,21 @@ const STATUS_LABELS: Record<Exclude<SignalStatusValue, 'open'>, string> = {
 
 export function SignalCard({
   item,
+  density = 'comfortable',
   onAddToList,
   onCleared,
   onReopened,
 }: {
   item: FeedItem;
+  /** Compact tightens spacing and hides the secondary "why this matched" line. */
+  density?: 'comfortable' | 'compact';
   onAddToList?: (item: FeedItem) => void;
   /** Called after the signal is dismissed/snoozed/actioned (to remove/refresh it). */
   onCleared?: (item: FeedItem) => void;
   /** Called after the signal is reopened. */
   onReopened?: (item: FeedItem) => void;
 }) {
+  const compact = density === 'compact';
   const style = styleFor(item.type);
   const Icon = style.icon;
   const tone = strengthTone(item.strength);
@@ -72,7 +76,7 @@ export function SignalCard({
   }
 
   return (
-    <article className={cn('rounded-lg border border-l-2 bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-border/80 hover:shadow-md', style.border, isCleared && 'opacity-75')}>
+    <article className={cn('rounded-lg border border-l-2 bg-card transition-all duration-200 hover:-translate-y-0.5 hover:border-border/80 hover:shadow-md', compact ? 'p-3' : 'p-4', style.border, isCleared && 'opacity-75')}>
       <div className="flex items-center gap-2 text-xs">
         <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium', style.badge)}>
           <Icon className="size-3" />
@@ -97,7 +101,7 @@ export function SignalCard({
         </div>
       </div>
 
-      <div className="mt-3">
+      <div className={cn(compact ? 'mt-2' : 'mt-3')}>
         <div className="flex items-baseline gap-2">
           {item.companyId ? (
             <Link href={`/companies/${item.companyId}`} className="font-semibold hover:text-primary hover:underline">
@@ -109,13 +113,13 @@ export function SignalCard({
           {item.companyDomain && <span className="text-xs text-muted-foreground">{item.companyDomain}</span>}
         </div>
         {item.title && <p className="mt-0.5 text-sm font-medium">{item.title}</p>}
-        <p className="mt-1 text-sm text-muted-foreground">{cleanSummary(item)}</p>
-        {item.justification && (
+        <p className={cn('mt-1 text-sm text-muted-foreground', compact && 'line-clamp-2')}>{cleanSummary(item)}</p>
+        {!compact && item.justification && (
           <p className="mt-2 text-xs italic text-muted-foreground/80">{item.justification}</p>
         )}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+      <div className={cn('flex flex-wrap items-center gap-1.5', compact ? 'mt-2' : 'mt-3')}>
         <Button asChild size="sm" variant="secondary">
           <Link
             href={

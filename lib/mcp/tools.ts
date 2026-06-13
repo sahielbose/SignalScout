@@ -195,7 +195,7 @@ export const MCP_TOOLS: McpTool[] = [
     schema: { limit: z.number().int().min(1).max(100).optional() },
     async handle(args, orgId) {
       const limit = typeof args.limit === 'number' ? args.limit : 50;
-      const rows = await listCompaniesWithCounts(orgId, limit);
+      const rows = await listCompaniesWithCounts(orgId, { limit });
       return {
         companies: rows.map((c) => ({
           id: c.id,

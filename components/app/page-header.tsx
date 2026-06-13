@@ -2,14 +2,26 @@ export function PageHeader({
   title,
   description,
   helper,
+  actions,
   children,
 }: {
   title: string;
   description?: string;
-  /** Optional one-line, plain-words hint shown under the description (e.g. "Tip: ..."). */
+  /**
+   * Optional one-line, plain-words hint shown under the description, e.g.
+   * "Tip: an ICP is the kind of customer you sell to." Keep it jargon-free.
+   */
   helper?: React.ReactNode;
+  /**
+   * Right-aligned controls for this page (buttons, toggles, a saved-views
+   * menu, an export action). Prefer this over `children`; both render in the
+   * same actions area, with `actions` first.
+   */
+  actions?: React.ReactNode;
+  /** Back-compat alias for `actions`; renders in the same right-aligned area. */
   children?: React.ReactNode;
 }) {
+  const hasActions = Boolean(actions || children);
   return (
     <div className="flex animate-fade-down flex-wrap items-start justify-between gap-4 border-b px-6 py-5">
       <div className="min-w-0">
@@ -23,7 +35,12 @@ export function PageHeader({
           </p>
         )}
       </div>
-      {children && <div className="flex shrink-0 items-center gap-2">{children}</div>}
+      {hasActions && (
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {actions}
+          {children}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { requireOrgId } from '@/lib/auth/session';
 import { listApiKeys } from '@/lib/apikeys/service';
 import { listWebhooks } from '@/lib/webhooks/service';
+import { listIcps } from '@/lib/icp/service';
 import { env } from '@/lib/env';
 import { PageHeader } from '@/components/app/page-header';
 import { Card } from '@/components/ui/card';
@@ -14,8 +15,13 @@ export const dynamic = 'force-dynamic';
 
 export default async function IntegrationsPage() {
   const orgId = await requireOrgId();
-  const [keys, hooks] = await Promise.all([listApiKeys(orgId), listWebhooks(orgId)]);
+  const [keys, hooks, icpRows] = await Promise.all([
+    listApiKeys(orgId),
+    listWebhooks(orgId),
+    listIcps(orgId),
+  ]);
   const base = env().NEXT_PUBLIC_APP_URL;
+  const icpOptions = icpRows.map((i) => ({ id: i.id, name: i.name, active: i.active }));
 
   return (
     <>
@@ -93,7 +99,16 @@ curl -H "Authorization: Bearer \$SSK" \\
             it in real time. We never push to your CRM on our own, that always stays a deliberate, logged action you
             take.
           </p>
-          <Webhooks webhooks={hooks.map((w) => ({ id: w.id, url: w.url, events: w.events, active: w.active }))} />
+          <Webhooks
+            icps={icpOptions}
+            webhooks={hooks.map((w) => ({
+              id: w.id,
+              url: w.url,
+              events: w.events,
+              active: w.active,
+              filters: w.filters ?? {},
+            }))}
+          />
         </Card>
         </Reveal>
 

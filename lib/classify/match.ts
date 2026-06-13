@@ -7,6 +7,9 @@ import type { SignalType, IcpDefinition } from '@/lib/types';
  */
 export function icpRelevanceScore(text: string, type: SignalType, def: IcpDefinition): number {
   const t = text.toLowerCase();
+  // Exclude keywords are a HARD veto: any hit disqualifies the signal entirely,
+  // regardless of how well the positive keywords/industries/titles line up.
+  for (const ex of def.excludeKeywords ?? []) if (ex && t.includes(ex.toLowerCase())) return 0;
   let s = 0;
   for (const kw of def.keywords ?? []) if (kw && t.includes(kw.toLowerCase())) s += 1;
   for (const ind of def.industries ?? []) if (ind && t.includes(ind.toLowerCase())) s += 0.8;

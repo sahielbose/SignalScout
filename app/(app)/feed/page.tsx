@@ -1,9 +1,14 @@
 import Link from 'next/link';
-import { z } from 'zod';
 import { requireOrgId } from '@/lib/auth/session';
-import { getFeed, getFeedFacets, type FeedFilters } from '@/lib/feed/queries';
+import {
+  getFeed,
+  getFeedFacets,
+  parseFeedFilters,
+  type FeedFilters,
+  type FeedItem,
+} from '@/lib/feed/queries';
 import { listIcps } from '@/lib/icp/service';
-import { SignalTypeSchema, SourceSchema } from '@/lib/types';
+import { listSavedViews } from '@/lib/views/service';
 import { PageHeader } from '@/components/app/page-header';
 import { FilterBar } from '@/components/feed/filter-bar';
 import { FeedList } from '@/components/feed/feed-list';
@@ -14,41 +19,35 @@ export const dynamic = 'force-dynamic';
 
 type SP = Record<string, string | string[] | undefined>;
 
-function parseFilters(sp: SP): { filters: FeedFilters; query: string } {
-  const get = (k: string) => (typeof sp[k] === 'string' ? (sp[k] as string) : undefined);
-  const filters: FeedFilters = {};
-  const params = new URLSearchParams();
+/** Keys that narrow or order the feed. `showCleared` is a view toggle, not a filter. */
+const FEED_PARAM_KEYS = ['icpId', 'type', 'source', 'minStrength', 'sinceDays', 'q', 'sort'] as const;
 
-  const icpId = z.string().uuid().safeParse(get('icpId'));
-  if (icpId.success) {
-    filters.icpId = icpId.data;
-    params.set('icpId', icpId.data);
+/** Turn the raw searchParams into a clean, canonical query string. */
+function canonicalQuery(sp: SP): string {
+  const params = new URLSearchParams();
+  for (const k of [...FEED_PARAM_KEYS, 'showCleared']) {
+    const v = sp[k];
+    if (typeof v === 'string' && v.trim()) params.set(k, v.trim());
   }
-  const type = SignalTypeSchema.safeParse(get('type'));
-  if (type.success) {
-    filters.type = type.data;
-    params.set('type', type.data);
-  }
-  const source = SourceSchema.safeParse(get('source'));
-  if (source.success) {
-    filters.source = source.data;
-    params.set('source', source.data);
-  }
-  const minStrength = Number(get('minStrength'));
-  if (Number.isFinite(minStrength) && minStrength > 0) {
-    filters.minStrength = minStrength;
-    params.set('minStrength', String(minStrength));
-  }
-  const sinceDays = Number(get('sinceDays'));
-  if (Number.isFinite(sinceDays) && sinceDays > 0) {
-    filters.sinceDays = sinceDays;
-    params.set('sinceDays', String(sinceDays));
-  }
-  if (get('showCleared') === '1') {
-    filters.showCleared = true;
-    params.set('showCleared', '1');
-  }
-  return { filters, query: params.toString() };
+  // Re-derive through the parser so only valid values survive into the URL.
+  const filters = parseFeedFilters(params);
+  return filtersToQuery(filters);
+}
+
+/** Serialize a parsed filter set back to a stable query string. */
+function filtersToQuery(filters: FeedFilters): string {
+  const params = new URLSearchParams();
+  if (filters.icpId) params.set('icpId', filters.icpId);
+  const types = filters.types ?? (filters.type ? [filters.type] : []);
+  if (types.length) params.set('type', types.join(','));
+  const sources = filters.sources ?? (filters.source ? [filters.source] : []);
+  if (sources.length) params.set('source', sources.join(','));
+  if (filters.search) params.set('q', filters.search);
+  if (filters.sort) params.set('sort', filters.sort);
+  if (filters.minStrength != null) params.set('minStrength', String(filters.minStrength));
+  if (filters.sinceDays != null) params.set('sinceDays', String(filters.sinceDays));
+  if (filters.showCleared) params.set('showCleared', '1');
+  return params.toString();
 }
 
 /** Build the href to the feed with `showCleared` flipped, preserving filters. */
@@ -63,12 +62,26 @@ function toggleClearedHref(query: string, showCleared: boolean): string {
 export default async function FeedPage({ searchParams }: { searchParams: Promise<SP> }) {
   const orgId = await requireOrgId();
   const sp = await searchParams;
-  const { filters, query } = parseFilters(sp);
+  const query = canonicalQuery(sp);
+  const filters = parseFeedFilters(new URLSearchParams(query));
 
-  const [{ items, hasMore, total }, facets, icpRows] = await Promise.all([
+  // Server action for infinite scroll. Runs the same org-scoped query as the
+  // first page, so every new filter (sort, search, multi-select) keeps working
+  // when loading more, without depending on the public REST route.
+  async function loadMore(q: string, page: number): Promise<{ items: FeedItem[]; hasMore: boolean }> {
+    'use server';
+    const orgId2 = await requireOrgId();
+    const f = parseFeedFilters(new URLSearchParams(q));
+    const safePage = Math.max(0, Math.floor(Number(page) || 0));
+    const { items, hasMore } = await getFeed(orgId2, f, safePage);
+    return { items, hasMore };
+  }
+
+  const [{ items, hasMore, total }, facets, icpRows, savedViews] = await Promise.all([
     getFeed(orgId, filters, 0),
     getFeedFacets(orgId),
     listIcps(orgId),
+    listSavedViews(orgId, 'feed'),
   ]);
 
   // brand-new account with nothing in the feed → guided onboarding
@@ -91,6 +104,7 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
             types: facets.types,
             sources: facets.sources,
           }}
+          savedViews={savedViews}
         />
         <div className="flex flex-wrap items-center justify-between gap-2 px-6 pt-3 text-xs text-muted-foreground">
           <p>
@@ -113,6 +127,7 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
           query={query}
           total={total}
           showCleared={showCleared}
+          loadMore={loadMore}
         />
       </div>
     </div>

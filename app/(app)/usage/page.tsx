@@ -7,7 +7,7 @@ import { getByoKey } from '@/lib/users/service';
 import { env } from '@/lib/env';
 import { PageHeader } from '@/components/app/page-header';
 import { Card } from '@/components/ui/card';
-import { ByoKey, QuotaMeter } from '@/components/usage/byo-key';
+import { ByoKey, QuotaMeters } from '@/components/usage/byo-key';
 import { Reveal } from '@/components/ui/reveal';
 
 export const metadata = { title: 'Usage - Signal Scout' };
@@ -38,24 +38,19 @@ export default async function UsagePage() {
       <div className="mx-auto max-w-3xl space-y-5 p-6">
         <Reveal>
           <Card className="space-y-5 p-5">
-            <div>
-              <h2 className="text-sm font-semibold">What you have used today</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Signal Scout is free, with a daily allowance of AI work. The bars below fill up as you use it and reset
-                every day at midnight UTC.
-              </p>
-            </div>
-            <QuotaMeter
-              label="Signals sorted"
-              hint="Each new public buying moment we read and tag for you uses one of these."
-              used={quota.classify.used}
-              limit={quota.classify.limit}
-            />
-            <QuotaMeter
-              label="Research profiles"
-              hint="Each deep profile we build on a person, with sources, uses one of these. We reuse a profile for 7 days before building a fresh one."
-              used={quota.research.used}
-              limit={quota.research.limit}
+            <QuotaMeters
+              classify={{
+                label: 'Signals sorted',
+                hint: 'A signal is a public buying moment. Each new one we read and tag for you uses one of these.',
+                used: quota.classify.used,
+                limit: quota.classify.limit,
+              }}
+              research={{
+                label: 'Research profiles',
+                hint: 'Each deep profile we build on a person, with sources, uses one of these. We reuse a profile for 7 days before building a fresh one.',
+                used: quota.research.used,
+                limit: quota.research.limit,
+              }}
             />
             <p className="text-xs text-muted-foreground">
               Run out for the day? Your allowance comes back tomorrow, or add your own AI key below to keep going right

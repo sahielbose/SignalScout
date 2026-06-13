@@ -300,6 +300,11 @@ export const webhooks = pgTable('webhooks', {
   url: text('url').notNull(),
   secret: text('secret').notNull(),
   events: text('events').array().default(sql`'{}'::text[]`).notNull(),
+  // Per-webhook delivery filters: only fire for matching signals.
+  filters: jsonb('filters')
+    .$type<{ minStrength?: number; signalTypes?: string[]; icpIds?: string[] }>()
+    .default({})
+    .notNull(),
   active: boolean('active').default(true).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
@@ -368,6 +373,23 @@ export const signalStatus = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [primaryKey({ columns: [t.orgId, t.signalId] })],
+);
+
+// Saved filter + sort setups, so a workspace can reuse named views per page.
+export const savedViews = pgTable(
+  'saved_views',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    surface: text('surface').notNull(), // feed | companies | events | lists
+    name: text('name').notNull(),
+    params: jsonb('params').$type<Record<string, string>>().default({}).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index('saved_views_org_surface_idx').on(t.orgId, t.surface)],
 );
 
 // Convenience type exports

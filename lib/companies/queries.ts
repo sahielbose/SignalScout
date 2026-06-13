@@ -1,14 +1,61 @@
-import { and, desc, eq, sql, arrayOverlaps } from 'drizzle-orm';
+import { and, desc, asc, eq, gte, ilike, or, sql, arrayOverlaps, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { companies, signals, people } from '@/lib/db/schema';
 import { getOrgIcpIds } from '@/lib/feed/queries';
 
-export async function listCompaniesWithCounts(orgId: string, limit = 100): Promise<
-  { id: string; name: string | null; domain: string | null; signals: number; lastAt: Date | null }[]
-> {
+/** Ways to order the companies index. Kept as a closed set so the URL param is validated. */
+export const COMPANY_SORTS = ['recent', 'signals', 'name'] as const;
+export type CompanySort = (typeof COMPANY_SORTS)[number];
+
+export interface CompaniesListOptions {
+  /** Free-text match on the company name or domain (case-insensitive substring). */
+  search?: string;
+  /** Keep only companies that have at least one matched signal of this type. */
+  type?: string;
+  /** Keep only companies with at least this many matched signals. */
+  minSignals?: number;
+  /** recent = most recently seen, signals = most signals, name = A-Z. */
+  sort?: CompanySort;
+  limit?: number;
+}
+
+export async function listCompaniesWithCounts(
+  orgId: string,
+  options: CompaniesListOptions = {},
+): Promise<{ id: string; name: string | null; domain: string | null; signals: number; lastAt: Date | null }[]> {
   const orgIcpIds = await getOrgIcpIds(orgId);
   // No ICPs yet -> nothing matched, so no companies to show.
   if (orgIcpIds.length === 0) return [];
+
+  const { search, type, minSignals, sort = 'signals', limit = 100 } = options;
+
+  // Join scope: only signals matched to one of the org's ICPs (tenancy scope).
+  const joinConds: SQL[] = [
+    eq(signals.companyId, companies.id),
+    arrayOverlaps(signals.matchedIcpIds, orgIcpIds),
+  ];
+  // Signal-type filter is applied on the join so a company only survives when it
+  // actually has a matched signal of that type (and the count reflects that type).
+  if (type) joinConds.push(eq(signals.type, type));
+
+  // Name/domain search lives on the row, not the join, so it does not change counts.
+  const where: SQL | undefined = search
+    ? or(ilike(companies.name, `%${search}%`), ilike(companies.domain, `%${search}%`))
+    : undefined;
+
+  const countExpr = sql<number>`count(${signals.id})`;
+  const lastAtExpr = sql<Date | null>`max(coalesce(${signals.publishedAt}, ${signals.ingestedAt}))`;
+
+  // "At least N signals" is a post-aggregation filter -> HAVING, not WHERE.
+  const having =
+    minSignals != null && minSignals > 1 ? gte(countExpr, minSignals) : undefined;
+
+  const orderBy =
+    sort === 'name'
+      ? asc(sql`lower(coalesce(${companies.name}, ${companies.domain}, ''))`)
+      : sort === 'recent'
+        ? desc(lastAtExpr)
+        : desc(countExpr);
 
   return db
     .select({
@@ -16,17 +63,29 @@ export async function listCompaniesWithCounts(orgId: string, limit = 100): Promi
       name: companies.name,
       domain: companies.domain,
       signals: sql<number>`count(${signals.id})::int`,
-      lastAt: sql<Date | null>`max(coalesce(${signals.publishedAt}, ${signals.ingestedAt}))`,
+      lastAt: lastAtExpr,
     })
     .from(companies)
-    // Only join signals matched to one of the org's ICPs (tenancy scope).
-    .innerJoin(
-      signals,
-      and(eq(signals.companyId, companies.id), arrayOverlaps(signals.matchedIcpIds, orgIcpIds)),
-    )
+    .innerJoin(signals, and(...joinConds))
+    .where(where)
     .groupBy(companies.id)
-    .orderBy(desc(sql`count(${signals.id})`))
+    .having(having)
+    .orderBy(orderBy)
     .limit(limit);
+}
+
+/**
+ * Distinct signal types that this org actually has on its companies, for the
+ * type filter dropdown. Org-scoped: only counts signals matched to the org's ICPs.
+ */
+export async function getCompanyFacets(orgId: string): Promise<{ types: string[] }> {
+  const orgIcpIds = await getOrgIcpIds(orgId);
+  if (orgIcpIds.length === 0) return { types: [] };
+  const rows = await db
+    .selectDistinct({ type: signals.type })
+    .from(signals)
+    .where(and(sql`${signals.type} is not null`, arrayOverlaps(signals.matchedIcpIds, orgIcpIds)));
+  return { types: rows.map((r) => r.type).filter((t): t is string => !!t).sort() };
 }
 
 export function inferDepartment(title?: string | null): string {
@@ -64,7 +123,11 @@ export interface CompanyProfile {
   departments: { name: string; people: CompanyPerson[] }[];
 }
 
-export async function getCompanyProfile(orgId: string, companyId: string): Promise<CompanyProfile | null> {
+export async function getCompanyProfile(
+  orgId: string,
+  companyId: string,
+  options: { type?: string } = {},
+): Promise<CompanyProfile | null> {
   const orgIcpIds = await getOrgIcpIds(orgId);
   // No ICPs yet -> no matched signals, so nothing to show for this org.
   if (orgIcpIds.length === 0) return null;
@@ -78,6 +141,19 @@ export async function getCompanyProfile(orgId: string, companyId: string): Promi
     arrayOverlaps(signals.matchedIcpIds, orgIcpIds),
   );
 
+  // Visibility is decided by all org-matched signals (byType totals stay complete),
+  // so the timeline type filter is applied on top of the org scope, not in place of it.
+  const timelineScope = options.type ? and(orgScope, eq(signals.type, options.type)) : orgScope;
+
+  // Gate visibility on the unfiltered org scope: a company the org can see should
+  // not 404 just because the active type filter has no matches.
+  const [visible] = await db
+    .select({ id: signals.id })
+    .from(signals)
+    .where(orgScope)
+    .limit(1);
+  if (!visible) return null;
+
   const timeline = await db
     .select({
       id: signals.id,
@@ -90,15 +166,13 @@ export async function getCompanyProfile(orgId: string, companyId: string): Promi
       ingestedAt: signals.ingestedAt,
     })
     .from(signals)
-    .where(orgScope)
+    .where(timelineScope)
     .orderBy(desc(sql`coalesce(${signals.publishedAt}, ${signals.ingestedAt})`))
     .limit(100);
 
-  // No org-matched signals -> this company is not visible to this org.
-  if (timeline.length === 0) return null;
-
-  // byType and people are independent; run them together (the timeline above
-  // already gated visibility, so we only do this work for a visible company).
+  // byType and people are independent; run them together (we only reach here for a
+  // visible company). byType always uses the unfiltered org scope so the per-type
+  // counts shown as filter chips stay complete regardless of the active type filter.
   const [byTypeRows, peopleRows] = await Promise.all([
     db
       .select({ type: signals.type, count: sql<number>`count(*)::int` })

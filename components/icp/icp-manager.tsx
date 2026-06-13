@@ -195,7 +195,11 @@ export function IcpManager({ icps }: { icps: IcpView[] }) {
                   <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">
                     {[
                       icp.definition.industries?.length ? `Industries: ${icp.definition.industries.join(', ')}` : '',
+                      icp.definition.companySize ? `Size: ${icp.definition.companySize}` : '',
                       icp.definition.keywords?.length ? `Keywords: ${icp.definition.keywords.slice(0, 6).join(', ')}` : '',
+                      icp.definition.excludeKeywords?.length
+                        ? `Excludes: ${icp.definition.excludeKeywords.slice(0, 6).join(', ')}`
+                        : '',
                     ]
                       .filter(Boolean)
                       .join('  ·  ')}

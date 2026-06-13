@@ -1,23 +1,31 @@
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
-import { KeyRound, Check, Loader2, Trash2 } from 'lucide-react';
+import { KeyRound, Check, Loader2, Trash2, Rows3, AlignJustify } from 'lucide-react';
 import { saveByoKeyAction, clearByoKeyAction } from '@/lib/users/actions';
+import { usePref } from '@/lib/hooks/use-pref';
 import { toast } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
+/**
+ * One quota bar. "detailed" mode adds the percentage used and a plain-words
+ * one-line breakdown; "compact" mode keeps just the bar and the amount left,
+ * for users who want the page to stay small.
+ */
 export function QuotaMeter({
   label,
   hint,
   used,
   limit,
+  detailed = true,
 }: {
   label: string;
   hint?: string;
   used: number;
   limit: number;
+  detailed?: boolean;
 }) {
   const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
   const over = used >= limit;
@@ -35,10 +43,11 @@ export function QuotaMeter({
         <span className="font-medium">{label}</span>
         <span className={cn('shrink-0 font-mono text-xs tabular-nums transition-colors', over ? 'text-destructive' : 'text-muted-foreground')}>
           {used.toLocaleString()} of {limit.toLocaleString()} used
+          {detailed ? <span className="ml-1 text-muted-foreground/70">({pct}%)</span> : null}
         </span>
       </div>
       <div
-        className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-muted"
+        className={cn('mt-1.5 overflow-hidden rounded-full bg-muted transition-[height]', detailed ? 'h-2.5' : 'h-1.5')}
         role="progressbar"
         aria-valuenow={used}
         aria-valuemin={0}
@@ -54,7 +63,69 @@ export function QuotaMeter({
         <span className={cn('text-xs', over ? 'font-medium text-destructive' : 'text-muted-foreground')}>
           {over ? "Today's allowance is used up. It resets tomorrow." : `${remaining.toLocaleString()} left today`}
         </span>
-        {hint ? <span className="hidden shrink-0 text-right text-[11px] leading-tight text-muted-foreground sm:block sm:max-w-[55%]">{hint}</span> : null}
+        {detailed && hint ? (
+          <span className="hidden shrink-0 text-right text-[11px] leading-tight text-muted-foreground sm:block sm:max-w-[55%]">{hint}</span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+type Meter = { label: string; hint: string; used: number; limit: number };
+
+/**
+ * The two quota bars plus a labeled view toggle. The toggle is remembered in
+ * the browser (usePref) so the page opens the way the user last left it.
+ * "Detailed" shows the percentage, a thicker bar, and the plain-words note for
+ * each meter; "Compact" hides those so the page reads at a glance.
+ */
+export function QuotaMeters({ classify, research }: { classify: Meter; research: Meter }) {
+  const [view, setView] = usePref<'detailed' | 'compact'>('usage:quota-view', 'detailed');
+  const detailed = view === 'detailed';
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="text-sm font-semibold">What you have used today</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Signal Scout is free, with a daily allowance of AI work. The bars below fill up as you use it and reset every
+            day at midnight UTC.
+          </p>
+        </div>
+        <div
+          className="inline-flex shrink-0 items-center gap-0.5 rounded-md border bg-muted/50 p-0.5"
+          role="group"
+          aria-label="How much detail to show"
+        >
+          <button
+            type="button"
+            onClick={() => setView('detailed')}
+            aria-pressed={detailed}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors',
+              detailed ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <AlignJustify className="size-3.5" /> Detailed
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('compact')}
+            aria-pressed={!detailed}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors',
+              !detailed ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <Rows3 className="size-3.5" /> Compact
+          </button>
+        </div>
+      </div>
+
+      <div className={cn(detailed ? 'space-y-5' : 'space-y-3')}>
+        <QuotaMeter label={classify.label} hint={classify.hint} used={classify.used} limit={classify.limit} detailed={detailed} />
+        <QuotaMeter label={research.label} hint={research.hint} used={research.used} limit={research.limit} detailed={detailed} />
       </div>
     </div>
   );
@@ -69,7 +140,7 @@ export function ByoKey({ masked }: { masked: string | null }) {
     start(async () => {
       const r = await saveByoKeyAction(key);
       if (r.ok) {
-        toast('Key saved. Your AI work now runs on your own key with no daily cap.', 'success');
+        toast('Key saved. Your research now runs on your own key with no daily cap.', 'success');
         setSaved(true);
         setKey('');
       } else toast(r.error ?? 'Could not save key', 'error');
@@ -95,6 +166,16 @@ export function ByoKey({ masked }: { masked: string | null }) {
           <span className="text-muted-foreground">No key added yet. You are on the shared free tier with a daily cap.</span>
         )}
       </div>
+
+      {/* Be honest about exactly which work the key powers today, so the toggle
+          above and this section never imply an effect the app does not have. */}
+      <div className="rounded-md border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
+        <span className="font-medium text-foreground">What your key powers:</span> right now your key runs your
+        <span className="font-medium text-foreground"> research profiles</span> (the deep, sourced write-ups we build on
+        a person). Reading and tagging new public buying moments still runs on Signal Scout&apos;s shared free tier and
+        stays within its own daily allowance, so that work keeps flowing whether or not you add a key.
+      </div>
+
       <div className="flex gap-2">
         <Input
           type="password"

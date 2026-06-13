@@ -1,25 +1,67 @@
 import Link from 'next/link';
-import { Building2, ChevronRight, Target, Radar } from 'lucide-react';
+import { Target, Radar } from 'lucide-react';
 import { requireOrgId } from '@/lib/auth/session';
-import { listCompaniesWithCounts } from '@/lib/companies/queries';
+import {
+  listCompaniesWithCounts,
+  getCompanyFacets,
+  COMPANY_SORTS,
+  type CompaniesListOptions,
+  type CompanySort,
+} from '@/lib/companies/queries';
 import { getOrgIcpIds } from '@/lib/feed/queries';
+import { listSavedViews } from '@/lib/views/service';
 import { PageHeader } from '@/components/app/page-header';
 import { Card } from '@/components/ui/card';
 import { buttonVariants } from '@/components/ui/button';
-import { relativeTime } from '@/lib/utils';
+import { CompaniesToolbar, CompaniesList } from '@/components/companies/org-tree';
 
 export const metadata = { title: 'Companies - Signal Scout' };
 export const dynamic = 'force-dynamic';
 
-export default async function CompaniesPage() {
+type SP = Record<string, string | string[] | undefined>;
+
+/** Parse the URL params into org-scoped list options (every value validated). */
+function parseOptions(sp: SP): CompaniesListOptions {
+  const get = (k: string) => (typeof sp[k] === 'string' ? (sp[k] as string) : undefined);
+  const options: CompaniesListOptions = {};
+
+  const q = get('q')?.trim();
+  if (q) options.search = q.slice(0, 80);
+
+  const type = get('type');
+  if (type) options.type = type;
+
+  const min = Number(get('minSignals'));
+  if (Number.isFinite(min) && min > 1) options.minSignals = Math.floor(min);
+
+  const sort = get('sort');
+  if (sort && (COMPANY_SORTS as readonly string[]).includes(sort)) {
+    options.sort = sort as CompanySort;
+  }
+
+  return options;
+}
+
+export default async function CompaniesPage({ searchParams }: { searchParams: Promise<SP> }) {
   const orgId = await requireOrgId();
+  const sp = await searchParams;
+  const options = parseOptions(sp);
+  const filtersActive = Boolean(options.search || options.type || options.minSignals);
+
   // Distinguish "no target customers set up" from "set up, but nothing found yet"
   // so the empty state can tell the user the right next step.
-  const [companies, icpIds] = await Promise.all([
-    listCompaniesWithCounts(orgId, 100),
+  const [companies, icpIds, facets, savedViews] = await Promise.all([
+    listCompaniesWithCounts(orgId, options),
     getOrgIcpIds(orgId),
+    getCompanyFacets(orgId),
+    listSavedViews(orgId, 'companies'),
   ]);
   const hasIcps = icpIds.length > 0;
+
+  // Only the truly-empty (no filters, nothing found) case gets the onboarding
+  // empty state. When filters are active but match nothing, the list component
+  // shows its own "no matches" message so the toolbar stays available.
+  const trulyEmpty = companies.length === 0 && !filtersActive;
 
   return (
     <>
@@ -28,7 +70,7 @@ export default async function CompaniesPage() {
         description="Every company where we have spotted a public buying sign that matches the kind of customer you sell to. Open one to see its full timeline and who works there."
       />
       <div className="mx-auto max-w-3xl p-6">
-        {companies.length === 0 ? (
+        {trulyEmpty ? (
           <Card className="animate-scale-in p-10 text-center">
             <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
               {hasIcps ? <Radar className="size-5" /> : <Target className="size-5" />}
@@ -53,34 +95,10 @@ export default async function CompaniesPage() {
             )}
           </Card>
         ) : (
-          <>
-            <p className="mb-3 animate-fade-in text-xs text-muted-foreground">
-              Sorted by how many buying signs we have seen. Click a company to open its timeline and team.
-            </p>
-            <Card className="animate-fade-up divide-y">
-              {companies.map((c, i) => (
-                <Link
-                  key={c.id}
-                  href={`/companies/${c.id}`}
-                  className="group flex animate-fade-up items-center gap-3 p-3 transition-colors hover:bg-accent/40"
-                  style={{ animationDelay: `${i * 50}ms` }}
-                >
-                  <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                    <Building2 className="size-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-medium group-hover:text-primary">{c.name ?? c.domain ?? 'Unknown'}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {c.domain ? `${c.domain} · ` : ''}
-                      {c.signals} buying sign{c.signals === 1 ? '' : 's'}
-                      {c.lastAt ? ` · last seen ${relativeTime(c.lastAt)}` : ''}
-                    </div>
-                  </div>
-                  <ChevronRight className="size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                </Link>
-              ))}
-            </Card>
-          </>
+          <div className="animate-fade-in space-y-4">
+            <CompaniesToolbar types={facets.types} savedViews={savedViews} />
+            <CompaniesList companies={companies} />
+          </div>
         )}
       </div>
     </>

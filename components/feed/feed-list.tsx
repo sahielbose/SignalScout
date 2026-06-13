@@ -3,9 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Radar } from 'lucide-react';
 import type { FeedItem } from '@/lib/feed/queries';
+import { usePref } from '@/lib/hooks/use-pref';
+import { FEED_DENSITY_EVENT, type FeedDensity } from './filter-bar';
 import { SignalCard } from './signal-card';
 import { toast } from '@/lib/toast';
 import { addToListAction } from '@/lib/lists/actions';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -15,13 +18,27 @@ export function FeedList({
   query,
   total,
   showCleared = false,
+  loadMore: loadMoreAction,
 }: {
   initialItems: FeedItem[];
   initialHasMore: boolean;
   query: string; // serialized filters (without page)
   total: number;
   showCleared?: boolean;
+  /** Server action that runs the same org-scoped query for the next page. */
+  loadMore: (query: string, page: number) => Promise<{ items: FeedItem[]; hasMore: boolean }>;
 }) {
+  // View-only density preference, shared with the filter bar's toggle. The bar
+  // broadcasts changes so the list re-renders live without waiting for a remount.
+  const [density, setDensity] = usePref<FeedDensity>('feed-density', 'comfortable');
+  useEffect(() => {
+    const onChange = (e: Event) => {
+      const detail = (e as CustomEvent<FeedDensity>).detail;
+      if (detail === 'comfortable' || detail === 'compact') setDensity(detail);
+    };
+    window.addEventListener(FEED_DENSITY_EVENT, onChange);
+    return () => window.removeEventListener(FEED_DENSITY_EVENT, onChange);
+  }, [setDensity]);
   const [items, setItems] = useState<FeedItem[]>(initialItems);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -40,9 +57,9 @@ export function FeedList({
     setLoading(true);
     try {
       const next = page + 1;
-      const res = await fetch(`/api/feed?${query}${query ? '&' : ''}page=${next}`);
-      if (!res.ok) throw new Error('failed to load');
-      const data = (await res.json()) as { items: FeedItem[]; hasMore: boolean };
+      // Use the server action so every filter (sort, search, multi-select) is
+      // applied on the next page, exactly as on the first.
+      const data = await loadMoreAction(query, next);
       setItems((prev) => [...prev, ...data.items]);
       setHasMore(data.hasMore);
       setPage(next);
@@ -51,7 +68,7 @@ export function FeedList({
     } finally {
       setLoading(false);
     }
-  }, [loading, hasMore, page, query]);
+  }, [loading, hasMore, page, query, loadMoreAction]);
 
   useEffect(() => {
     const el = sentinel.current;
@@ -119,7 +136,7 @@ export function FeedList({
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-3 p-6">
+    <div className={cn('mx-auto max-w-3xl p-6', density === 'compact' ? 'space-y-2' : 'space-y-3')}>
       <p className="text-xs text-muted-foreground">
         {total} matching signal{total === 1 ? '' : 's'}
         {showCleared ? '' : ' to work through'}
@@ -132,6 +149,7 @@ export function FeedList({
         >
           <SignalCard
             item={item}
+            density={density}
             onAddToList={onAddToList}
             onCleared={onCleared}
             onReopened={onReopened}

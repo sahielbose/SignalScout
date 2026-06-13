@@ -1,14 +1,33 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Loader2, FileSearch, ChevronDown, Github, Link2, Quote } from 'lucide-react';
-import { researchAction, type ResearchActionResult } from '@/lib/research/actions';
+import { Loader2, FileSearch, ChevronDown, Github, Link2, Quote, Globe, Layers, Info } from 'lucide-react';
+import {
+  researchAction,
+  type ResearchActionResult,
+  type ResearchSources,
+  type ResearchDetail,
+} from '@/lib/research/actions';
+import { usePref } from '@/lib/hooks/use-pref';
 import { DossierPanel } from './dossier-panel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+
+// "What we read" — which public sources to build the profile from.
+const SOURCE_OPTIONS: { value: ResearchSources; label: string; hint: string; Icon: typeof Github }[] = [
+  { value: 'both', label: 'Both', hint: 'GitHub plus the public web (recommended)', Icon: Layers },
+  { value: 'github', label: 'GitHub only', hint: 'Just their public code on GitHub', Icon: Github },
+  { value: 'web', label: 'Public web only', hint: 'Talks, articles, and company pages', Icon: Globe },
+];
+
+// "How deep to dig" — speed vs. freshness.
+const DETAIL_OPTIONS: { value: ResearchDetail; label: string; hint: string }[] = [
+  { value: 'quick', label: 'Quick', hint: 'Fast; may reuse a recent profile' },
+  { value: 'thorough', label: 'Thorough', hint: 'Always rebuilt from fresh sources' },
+];
 
 export function ResearchForm({ defaults }: { defaults?: { name?: string; company?: string; domain?: string } }) {
   const [name, setName] = useState(defaults?.name ?? '');
@@ -17,13 +36,16 @@ export function ResearchForm({ defaults }: { defaults?: { name?: string; company
   const [githubLogin, setGithub] = useState('');
   const [domain] = useState(defaults?.domain ?? '');
   const [advanced, setAdvanced] = useState(false);
+  // View-only prefs: remember the person's preferred sources + detail between visits.
+  const [sources, setSources] = usePref<ResearchSources>('research.sources', 'both');
+  const [detail, setDetail] = usePref<ResearchDetail>('research.detail', 'quick');
   const [res, setRes] = useState<ResearchActionResult | null>(null);
   const [pending, start] = useTransition();
 
   const submit = () => {
     setRes(null);
     start(async () => {
-      const r = await researchAction({ name, company, domain, linkedinUrl, githubLogin });
+      const r = await researchAction({ name, company, domain, linkedinUrl, githubLogin, sources, detail });
       setRes(r);
     });
   };
@@ -61,6 +83,69 @@ export function ResearchForm({ defaults }: { defaults?: { name?: string; company
               <Label htmlFor="company">Company</Label>
               <Input id="company" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Vercel" />
             </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <fieldset className="space-y-1.5">
+              <legend className="text-sm font-medium">What we read</legend>
+              <p className="text-[0.7rem] text-muted-foreground">Which public sources we build the profile from.</p>
+              <div
+                role="radiogroup"
+                aria-label="Which public sources to use"
+                className="flex flex-col gap-1.5 rounded-md border bg-card/40 p-1"
+              >
+                {SOURCE_OPTIONS.map((opt) => {
+                  const active = sources === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setSources(opt.value)}
+                      className={`flex items-start gap-2 rounded-sm px-2.5 py-2 text-left text-sm transition-colors ${
+                        active ? 'bg-primary/10 text-foreground ring-1 ring-primary/30' : 'text-muted-foreground hover:bg-muted/60'
+                      }`}
+                    >
+                      <opt.Icon className={`mt-0.5 size-4 shrink-0 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span>
+                        <span className="font-medium text-foreground">{opt.label}</span>
+                        <span className="block text-[0.7rem] text-muted-foreground">{opt.hint}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <fieldset className="space-y-1.5">
+              <legend className="text-sm font-medium">How deep to dig</legend>
+              <p className="text-[0.7rem] text-muted-foreground">Speed versus a freshly rebuilt profile.</p>
+              <div
+                role="radiogroup"
+                aria-label="How deep to research"
+                className="flex flex-col gap-1.5 rounded-md border bg-card/40 p-1"
+              >
+                {DETAIL_OPTIONS.map((opt) => {
+                  const active = detail === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setDetail(opt.value)}
+                      className={`rounded-sm px-2.5 py-2 text-left text-sm transition-colors ${
+                        active ? 'bg-primary/10 text-foreground ring-1 ring-primary/30' : 'text-muted-foreground hover:bg-muted/60'
+                      }`}
+                    >
+                      <span className="font-medium text-foreground">{opt.label}</span>
+                      <span className="block text-[0.7rem] text-muted-foreground">{opt.hint}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
           </div>
 
           <button
@@ -140,6 +225,15 @@ export function ResearchForm({ defaults }: { defaults?: { name?: string; company
       )}
       {res && !res.ok && !res.quotaExceeded && (
         <Card className="animate-fade-up border-destructive/40 p-4 text-sm text-destructive">{res.error}</Card>
+      )}
+
+      {res?.ok && res.applied?.notice && (
+        <Card className="animate-fade-up border-beacon/40 bg-beacon/5 p-3 text-xs">
+          <p className="flex items-start gap-2 text-beacon">
+            <Info className="mt-0.5 size-3.5 shrink-0" />
+            {res.applied.notice}
+          </p>
+        </Card>
       )}
 
       {res?.ok && res.result && (

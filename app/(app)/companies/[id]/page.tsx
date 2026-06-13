@@ -5,17 +5,35 @@ import { getCompanyProfile } from '@/lib/companies/queries';
 import { SIGNAL_TYPE_LABELS, SOURCE_LABELS, type SignalType, type SourceName } from '@/lib/types';
 import { styleFor } from '@/lib/feed/signal-style';
 import { PageHeader } from '@/components/app/page-header';
-import { OrgTree } from '@/components/companies/org-tree';
+import { OrgTree, TimelineTypeFilter } from '@/components/companies/org-tree';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn, relativeTime } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
-export default async function CompanyPage({ params }: { params: Promise<{ id: string }> }) {
+type SP = Record<string, string | string[] | undefined>;
+
+export default async function CompanyPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<SP>;
+}) {
   const orgId = await requireOrgId();
   const { id } = await params;
-  const profile = await getCompanyProfile(orgId, id);
+  const sp = await searchParams;
+  // Optional timeline filter: keep only this kind of buying moment. Validated
+  // against the company's own byType below so an unknown value is a harmless no-op.
+  const rawType = typeof sp.type === 'string' ? sp.type : undefined;
+
+  // First pass with no type filter so byType (the filter chips) is always complete
+  // and visibility is decided on the full org-scoped set.
+  const base = await getCompanyProfile(orgId, id);
+  if (!base) notFound();
+  const knownType = rawType && base.byType.some((t) => t.type === rawType) ? rawType : undefined;
+  const profile = knownType ? await getCompanyProfile(orgId, id, { type: knownType }) : base;
   if (!profile) notFound();
   const { company, timeline, byType, people } = profile;
 
@@ -37,24 +55,32 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
         <div className="lg:col-span-2">
           <div className="mb-1 flex animate-fade-in flex-wrap items-center gap-2">
             <h2 className="text-sm font-semibold">Buying signs over time</h2>
-            {byType.map((t) => (
-              <Badge key={t.type} variant="secondary">
-                {SIGNAL_TYPE_LABELS[t.type as SignalType] ?? t.type}: {t.count}
-              </Badge>
-            ))}
           </div>
           <p className="mb-3 animate-fade-in text-xs text-muted-foreground">
             Each card is a public moment that suggests this company may be ready to buy. The percentage is how strong a buying sign it is.
+            Use the chips below to show just one kind of buying moment.
           </p>
+          <TimelineTypeFilter byType={byType} />
           {timeline.length === 0 ? (
             <Card className="animate-scale-in p-8 text-center">
               <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
                 <Radar className="size-5" />
               </div>
-              <p className="text-sm font-medium">No buying signs yet</p>
-              <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-                We have not spotted a public buying sign here yet. New ones will appear in this timeline automatically as we find them.
-              </p>
+              {knownType ? (
+                <>
+                  <p className="text-sm font-medium">No {SIGNAL_TYPE_LABELS[knownType as SignalType] ?? knownType} buying signs</p>
+                  <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+                    This company has buying signs of other kinds. Pick &quot;All buying signs&quot; above to see them.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium">No buying signs yet</p>
+                  <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+                    We have not spotted a public buying sign here yet. New ones will appear in this timeline automatically as we find them.
+                  </p>
+                </>
+              )}
             </Card>
           ) : (
             <div className="space-y-2">

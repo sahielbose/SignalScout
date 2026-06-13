@@ -2,7 +2,7 @@ import { and, arrayOverlaps, desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { signals, companies, deliveries, icps } from '@/lib/db/schema';
 import { getOrgIcpIds } from '@/lib/feed/queries';
-import { listWebhooks, sendWebhook, type WebhookRow } from '@/lib/webhooks/service';
+import { listWebhooks, sendWebhook, signalMatchesWebhookFilters, type WebhookRow } from '@/lib/webhooks/service';
 import { postSlack, formatSlackMessage } from './slack';
 import { env } from '@/lib/env';
 
@@ -75,13 +75,26 @@ export async function dispatchSignalNotifications(orgId: string, minStrength = 0
       return !!def && def.notify.slack && (c.strength ?? 0) >= def.notifyThreshold;
     });
 
-  // Webhooks stay per-org but now respect each ICP's notifyThreshold.
+  // Webhooks respect each ICP's notifyThreshold AND each webhook's own filters
+  // (minimum strength, chosen signal types, chosen ICPs). A webhook only fires
+  // when it has at least one signal that clears both gates, and we POST it only
+  // the subset of signals it actually asked for.
   const webhookSignals = fresh.filter(passesThreshold);
-  const hooks = (await listWebhooks(orgId)).filter((w) => w.active && w.events.includes('signal.created')) as WebhookRow[];
+  const hooks = (await listWebhooks(orgId)).filter(
+    (w) => w.active && w.events.includes('signal.created'),
+  ) as WebhookRow[];
   let webhookCount = 0;
   if (webhookSignals.length) {
     for (const hook of hooks) {
-      const ok = await sendWebhook(hook, 'signal.created', { signals: webhookSignals });
+      const forHook = webhookSignals.filter((c) =>
+        signalMatchesWebhookFilters(hook.filters, {
+          type: c.type,
+          strength: c.strength,
+          matchedIcpIds: c.matchedIcpIds,
+        }),
+      );
+      if (forHook.length === 0) continue;
+      const ok = await sendWebhook(hook, 'signal.created', { signals: forHook });
       if (ok) webhookCount++;
     }
   }

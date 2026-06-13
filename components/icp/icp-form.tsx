@@ -1,13 +1,35 @@
 'use client';
 
+import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Loader2 } from 'lucide-react';
-import { SIGNAL_TYPES, SIGNAL_TYPE_LABELS, type IcpDefinition } from '@/lib/types';
+import {
+  SIGNAL_TYPES,
+  SIGNAL_TYPE_LABELS,
+  COMPANY_SIZE_RANGES,
+  type CompanySizeRange,
+  type IcpDefinition,
+} from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+
+const SIZE_LABELS: Record<CompanySizeRange, string> = {
+  '1-10': '1 to 10',
+  '11-50': '11 to 50',
+  '51-200': '51 to 200',
+  '201-1000': '201 to 1,000',
+  '1000+': '1,000+',
+};
+
+/** Pull the known ranges back out of a stored companySize string (any order/format). */
+function parseSelectedSizes(companySize?: string): CompanySizeRange[] {
+  if (!companySize) return [];
+  const parts = companySize.split(',').map((p) => p.trim());
+  return COMPANY_SIZE_RANGES.filter((r) => parts.includes(r));
+}
 
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
@@ -28,6 +50,11 @@ export interface IcpFormProps {
 
 export function IcpForm({ action, initial, submitLabel = 'Save ICP', onCancel }: IcpFormProps) {
   const d = initial?.definition;
+  const [sizes, setSizes] = useState<CompanySizeRange[]>(parseSelectedSizes(d?.companySize));
+  const toggleSize = (r: CompanySizeRange) =>
+    setSizes((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
+  // Submit the picked ranges as the comma-joined string the action already reads.
+  const companySizeValue = COMPANY_SIZE_RANGES.filter((r) => sizes.includes(r)).join(', ');
   return (
     <form action={action} className="space-y-4">
       {initial?.id && <input type="hidden" name="id" value={initial.id} />}
@@ -45,18 +72,56 @@ export function IcpForm({ action, initial, submitLabel = 'Save ICP', onCancel }:
         <Field label="Job titles you sell to" hint="separate with commas">
           <Textarea name="titles" defaultValue={d?.titles?.join(', ') ?? ''} placeholder="account executive, head of sales, gtm" />
         </Field>
-        <Field label="Keywords" hint="words that describe a good fit">
+        <Field label="Good-fit keywords" hint="words that describe a good fit">
           <Textarea name="keywords" defaultValue={d?.keywords?.join(', ') ?? ''} placeholder="api, payments, infrastructure, sdk" />
         </Field>
         <Field label="Locations" hint="countries or regions, comma-separated">
           <Textarea name="geos" defaultValue={d?.geos?.join(', ') ?? ''} placeholder="United States, EMEA, Remote" />
         </Field>
+        <Field label="Exclude these words" hint="words that rule a company OUT">
+          <Textarea
+            name="excludeKeywords"
+            defaultValue={d?.excludeKeywords?.join(', ') ?? ''}
+            placeholder="recruiting, staffing, job board, crypto"
+          />
+        </Field>
       </div>
+      <p className="-mt-1 text-xs text-muted-foreground">
+        Exclude words are a hard filter. If a public buying moment mentions any of them, we drop it from this profile even
+        when the good-fit words match. Use it to keep look-alikes out, like staffing firms when you sell to product teams.
+      </p>
 
       <div className="grid animate-fade-up gap-4 sm:grid-cols-2" style={{ animationDelay: '100ms' }}>
-        <Field label="Company size" htmlFor="companySize" hint="number of employees, as a range">
-          <Input id="companySize" name="companySize" defaultValue={d?.companySize ?? ''} placeholder="e.g. 11-200" />
-        </Field>
+        <div className="space-y-1.5">
+          <div className="flex items-baseline justify-between">
+            <Label>Company size</Label>
+            <span className="text-[0.7rem] text-muted-foreground">number of employees · pick any</span>
+          </div>
+          {/* Toggle buttons, joined into the comma string the action already reads. */}
+          <input type="hidden" name="companySize" value={companySizeValue} />
+          <div className="flex flex-wrap gap-1.5">
+            {COMPANY_SIZE_RANGES.map((r) => {
+              const on = sizes.includes(r);
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => toggleSize(r)}
+                  className={
+                    'cursor-pointer select-none rounded-full border px-3 py-1 text-xs font-medium transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.96] ' +
+                    (on
+                      ? 'border-primary/40 bg-primary/15 text-primary'
+                      : 'text-muted-foreground')
+                  }
+                >
+                  {SIZE_LABELS[r]}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[0.7rem] text-muted-foreground">Leave all unpicked to allow any size.</p>
+        </div>
         <Field label="When to alert me" htmlFor="notifyThreshold" hint="0 = everything, 1 = only the strongest">
           <Input
             id="notifyThreshold"

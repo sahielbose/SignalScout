@@ -25,6 +25,7 @@ function definitionFromForm(form: FormData): IcpDefinition {
     titles: parseList(form.get('titles')),
     companySize: (form.get('companySize') as string) || undefined,
     keywords: parseList(form.get('keywords')),
+    excludeKeywords: parseList(form.get('excludeKeywords')),
     geos: parseList(form.get('geos')),
     signalTypes,
     notify: {

@@ -1,17 +1,89 @@
-import { and, desc, eq, gte, sql, or, isNull, arrayOverlaps, arrayContains, type SQL } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  sql,
+  or,
+  ilike,
+  inArray,
+  isNull,
+  arrayOverlaps,
+  arrayContains,
+  type SQL,
+} from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { signals, companies, people, icps, signalStatus } from '@/lib/db/schema';
 import type { SignalStatusValue } from '@/lib/feed/status';
-import type { SignalType, SourceName } from '@/lib/types';
+import { SignalTypeSchema, SourceSchema, type SignalType, type SourceName } from '@/lib/types';
+
+/** Ways the feed can be ordered. Plain-language labels live in the filter bar. */
+export const FEED_SORTS = ['newest', 'strongest', 'oldest'] as const;
+export type FeedSort = (typeof FEED_SORTS)[number];
 
 export interface FeedFilters {
   icpId?: string;
+  /** Single signal type (kept for back-compat with the public API). */
   type?: SignalType;
+  /** Single source (kept for back-compat with the public API). */
   source?: SourceName;
+  /** Pick several signal types at once (a signal is a public buying moment). */
+  types?: SignalType[];
+  /** Pick several sources at once. */
+  sources?: SourceName[];
+  /** Free-text match on company name, title, or content. */
+  search?: string;
+  /** How to order the list. Defaults to newest first. */
+  sort?: FeedSort;
   minStrength?: number;
   sinceDays?: number;
   /** When true, do NOT hide dismissed/actioned/active-snoozed signals. */
   showCleared?: boolean;
+}
+
+/**
+ * Parse the feed's URL params into a typed filter object. Shared by the server
+ * page and the load-more path so the two never drift. Multi-select type/source
+ * arrive as comma-separated lists (e.g. `type=funding,hiring`).
+ */
+export function parseFeedFilters(sp: URLSearchParams): FeedFilters {
+  const filters: FeedFilters = {};
+
+  const icpId = sp.get('icpId');
+  if (icpId && /^[0-9a-f-]{36}$/i.test(icpId)) filters.icpId = icpId;
+
+  const types = (sp.get('type') ?? '')
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .filter((t): t is SignalType => SignalTypeSchema.safeParse(t).success);
+  if (types.length === 1) filters.type = types[0];
+  else if (types.length > 1) filters.types = [...new Set(types)];
+
+  const sources = (sp.get('source') ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .filter((s): s is SourceName => SourceSchema.safeParse(s).success);
+  if (sources.length === 1) filters.source = sources[0];
+  else if (sources.length > 1) filters.sources = [...new Set(sources)];
+
+  const search = (sp.get('q') ?? '').trim();
+  if (search) filters.search = search.slice(0, 120);
+
+  const sort = sp.get('sort');
+  if (sort && (FEED_SORTS as readonly string[]).includes(sort)) filters.sort = sort as FeedSort;
+
+  const minStrength = Number(sp.get('minStrength'));
+  if (Number.isFinite(minStrength) && minStrength > 0) filters.minStrength = minStrength;
+
+  const sinceDays = Number(sp.get('sinceDays'));
+  if (Number.isFinite(sinceDays) && sinceDays > 0) filters.sinceDays = sinceDays;
+
+  if (sp.get('showCleared') === '1') filters.showCleared = true;
+
+  return filters;
 }
 
 export interface FeedItem {
@@ -62,8 +134,29 @@ export async function getFeed(
   } else {
     conds.push(arrayOverlaps(signals.matchedIcpIds, orgIcpIds));
   }
-  if (filters.type) conds.push(eq(signals.type, filters.type));
-  if (filters.source) conds.push(eq(signals.source, filters.source));
+  // Signal type: a single value OR a multi-select list (pick several at once).
+  if (filters.types && filters.types.length > 0) {
+    conds.push(inArray(signals.type, filters.types));
+  } else if (filters.type) {
+    conds.push(eq(signals.type, filters.type));
+  }
+  // Source: a single value OR a multi-select list.
+  if (filters.sources && filters.sources.length > 0) {
+    conds.push(inArray(signals.source, filters.sources));
+  } else if (filters.source) {
+    conds.push(eq(signals.source, filters.source));
+  }
+  // Free-text search across company name, title, and the signal's content.
+  if (filters.search) {
+    const pattern = `%${filters.search.replace(/[%_\\]/g, (c) => `\\${c}`)}%`;
+    conds.push(
+      or(
+        ilike(companies.name, pattern),
+        ilike(signals.title, pattern),
+        ilike(signals.rawContent, pattern),
+      )!,
+    );
+  }
   if (filters.minStrength != null) conds.push(gte(signals.strength, filters.minStrength));
   if (filters.sinceDays != null) {
     const since = new Date(Date.now() - filters.sinceDays * 86400_000).toISOString();
@@ -94,7 +187,15 @@ export async function getFeed(
   );
 
   const where = and(...conds);
-  const sortKey = sql`coalesce(${signals.publishedAt}, ${signals.ingestedAt})`;
+  const dateKey = sql`coalesce(${signals.publishedAt}, ${signals.ingestedAt})`;
+  // Strongest first puts the most convincing buying signs at the top, then
+  // breaks ties by recency. Oldest/newest sort purely by date.
+  const orderBy: SQL[] =
+    filters.sort === 'strongest'
+      ? [desc(sql`coalesce(${signals.strength}, 0)`), desc(dateKey), desc(signals.id)]
+      : filters.sort === 'oldest'
+        ? [asc(dateKey), asc(signals.id)]
+        : [desc(dateKey), desc(signals.id)];
 
   const rows = await db
     .select({
@@ -122,7 +223,7 @@ export async function getFeed(
     .leftJoin(people, eq(signals.personId, people.id))
     .leftJoin(signalStatus, statusJoinOn)
     .where(where)
-    .orderBy(desc(sortKey), desc(signals.id))
+    .orderBy(...orderBy)
     .limit(FEED_PAGE_SIZE + 1)
     .offset(page * FEED_PAGE_SIZE);
 
@@ -135,12 +236,16 @@ export async function getFeed(
 
   // Only the first page needs the total; the client ignores it afterward, so
   // skip the extra count(*) on every infinite-scroll fetch.
+  // The count must join `companies` too, because a free-text search filters on
+  // the company name. Without this join the WHERE would reference a table that
+  // is not in the FROM clause and the query would fail.
   const totalRow =
     page === 0
       ? (
           await db
             .select({ total: sql<number>`count(*)::int` })
             .from(signals)
+            .leftJoin(companies, eq(signals.companyId, companies.id))
             .leftJoin(signalStatus, statusJoinOn)
             .where(where)
         )[0]

@@ -60,11 +60,25 @@ export const RawItemSchema = z.object({
 export type RawItem = z.infer<typeof RawItemSchema>;
 
 // ───────────────────────── ICP definition ──────────────────────────
+/**
+ * Company-size buckets, by number of employees. Offered as a clear multi-select
+ * in the ICP form (a single free-text "11-200" was easy to mistype). Stored as a
+ * comma-joined string in `companySize` so the existing storage stays unchanged.
+ */
+export const COMPANY_SIZE_RANGES = ['1-10', '11-50', '51-200', '201-1000', '1000+'] as const;
+export type CompanySizeRange = (typeof COMPANY_SIZE_RANGES)[number];
+
 export const IcpDefinitionSchema = z.object({
   industries: z.array(z.string()).default([]),
   titles: z.array(z.string()).default([]),
   companySize: z.string().optional(), // e.g. "11-50", "51-200", "1000+"
   keywords: z.array(z.string()).default([]),
+  /**
+   * Words that DISQUALIFY a company. If a public buying moment's text contains any
+   * of these, it does NOT match this profile, even when other keywords line up.
+   * Use it to filter out look-alikes (for example "recruiting", "job board").
+   */
+  excludeKeywords: z.array(z.string()).optional(),
   geos: z.array(z.string()).default([]),
   signalTypes: z.array(SignalTypeSchema).default([]),
   notify: z
