@@ -1,4 +1,4 @@
-import { Github, Globe, FileText, Link2, MapPin, ChevronDown } from 'lucide-react';
+import { Github, Globe, FileText, Link2, MapPin, ChevronDown, Check } from 'lucide-react';
 import { TypeBadge } from './type-badge';
 
 const tags = ['Platform', 'API tooling', 'Open source', 'Series B'];
@@ -28,7 +28,7 @@ function inits(n: string) {
 
 export function DossierMock() {
   return (
-    <div className="rounded-xl border border-border bg-[hsl(var(--card))] p-5">
+    <div className="flex h-full flex-col rounded-xl border border-border bg-[hsl(var(--card))] p-5">
       <div className="flex items-start gap-3">
         <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-[hsl(var(--accent))] text-base font-semibold text-[hsl(var(--accent-foreground))]">
           DO
@@ -93,6 +93,13 @@ export function DossierMock() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4">
+        <span className="flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))]">
+          <Check className="size-3.5 text-[hsl(var(--accent))]" /> Every fact carries a source
+        </span>
+        <TypeBadge tone="soft">High confidence</TypeBadge>
       </div>
     </div>
   );

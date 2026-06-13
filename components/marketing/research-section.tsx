@@ -13,7 +13,7 @@ export function ResearchSection() {
           Point it at someone in your feed and it reads their public footprint, then returns a structured dossier where
           every fact links to its source.
         </p>
-        <div className="mt-10 grid items-start gap-6 lg:grid-cols-2">
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
           <ResearchTrace />
           <DossierMock />
         </div>
