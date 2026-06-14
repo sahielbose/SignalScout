@@ -1,9 +1,7 @@
 'use server';
 
 import { db } from '@/lib/db/client';
-import { auditLogs, people } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
-import { normalizeName } from '@/lib/entity/normalize';
+import { auditLogs } from '@/lib/db/schema';
 
 export interface RemovalResult {
   ok: boolean;
@@ -11,9 +9,13 @@ export interface RemovalResult {
 }
 
 /**
- * Public data-removal request (GDPR/CCPA). Records the request for the operator
- * to action within the statutory window, and flags any matching person rows.
- * Operators should wire verification + actual deletion into their support flow.
+ * Public data-removal request (GDPR/CCPA). This is an UNAUTHENTICATED endpoint,
+ * so it never mutates tenant data: it only records the request for the operator
+ * to verify and action within the statutory window. Writing to the shared,
+ * globally-deduped people table from here would (a) cross every tenant boundary
+ * by normalized name and (b) let an anonymous visitor clobber person metadata
+ * at scale, so we deliberately do not. Operators wire verification + deletion
+ * into their support flow off the back of this audit record.
  */
 export async function requestDataRemovalAction(input: { email?: string; name?: string; note?: string }): Promise<RemovalResult> {
   const email = (input.email ?? '').trim().toLowerCase();
@@ -27,12 +29,6 @@ export async function requestDataRemovalAction(input: { email?: string; name?: s
     subjectType: 'person',
     detail: { email, name, note: (input.note ?? '').slice(0, 1000), receivedAt: new Date().toISOString() },
   });
-
-  // best-effort: flag matching person rows for the operator's review (not auto-deleted)
-  if (name) {
-    const normalized = normalizeName(name);
-    await db.update(people).set({ metadata: { removalRequested: true } }).where(eq(people.normalizedName, normalized));
-  }
 
   return { ok: true };
 }

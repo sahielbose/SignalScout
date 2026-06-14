@@ -46,9 +46,7 @@ export function MobileNav() {
 
   function openSearch() {
     setOpen(false);
-    window.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true, bubbles: true }),
-    );
+    window.dispatchEvent(new CustomEvent('ss:open-search'));
   }
 
   return (
@@ -132,7 +130,7 @@ export function MobileNav() {
                 className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground"
               >
                 <Search className="size-4" />
-                Search people, companies, signals
+                Search and jump to anything
               </button>
             </div>
           </aside>

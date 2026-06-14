@@ -71,8 +71,18 @@ async function main() {
   }
 
   console.log(`\n▶ classifying pending signals…`);
-  const c = await classifyPendingSignals({ limit: 200, orgId });
-  console.log(`  classified ${c.classified}, ${c.matched} matched an ICP`);
+  // Drain the queue in batches so a large ingest (many sources) is fully
+  // classified, not capped at a single batch.
+  let totalClassified = 0;
+  let totalMatched = 0;
+  for (let round = 0; round < 30; round++) {
+    const c = await classifyPendingSignals({ limit: 100, orgId });
+    totalClassified += c.classified;
+    totalMatched += c.matched;
+    if (c.classified === 0) break;
+    console.log(`  round ${round + 1}: classified ${c.classified}, ${c.matched} matched`);
+  }
+  console.log(`  classified ${totalClassified}, ${totalMatched} matched an ICP`);
 
   // report matched signals
   const matched = await db

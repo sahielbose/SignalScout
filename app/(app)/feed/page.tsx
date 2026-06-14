@@ -126,6 +126,7 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
           query={query}
           total={total}
           showCleared={showCleared}
+          icpNames={Object.fromEntries(icpRows.map((i) => [i.id, i.name]))}
           loadMore={loadMore}
         />
       </div>

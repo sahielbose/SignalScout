@@ -14,16 +14,18 @@ import {
   reopenSignalAction,
   type StatusActionResult,
 } from '@/lib/feed/status-actions';
-import { cn, relativeTime, truncate, plainText } from '@/lib/utils';
+import { cn, relativeTime, truncate, plainText, stripDashes } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { StrengthInfo } from './strength-info';
 import { toast } from '@/lib/toast';
 
 function cleanSummary(item: FeedItem): string {
   const raw = (item.summary ?? '').replace(/^Content change detected on [^:]+:\s*/i, '');
   // Source bodies are often markdown changelogs or release notes; flatten to clean
   // prose so cards never show raw "### Misc Changes - [codemod]" style noise.
-  return truncate(plainText(raw), 200);
+  // stripDashes also keeps external titles within house style (no em/en dashes).
+  return stripDashes(truncate(plainText(raw), 200));
 }
 
 const STATUS_LABELS: Record<Exclude<SignalStatusValue, 'open'>, string> = {
@@ -35,6 +37,7 @@ const STATUS_LABELS: Record<Exclude<SignalStatusValue, 'open'>, string> = {
 export function SignalCard({
   item,
   density = 'comfortable',
+  icpNames,
   onAddToList,
   onCleared,
   onReopened,
@@ -42,6 +45,8 @@ export function SignalCard({
   item: FeedItem;
   /** Compact tightens spacing and hides the secondary "why this matched" line. */
   density?: 'comfortable' | 'compact';
+  /** Map of the org's ICP id to its name, to label which customer type matched. */
+  icpNames?: Record<string, string>;
   onAddToList?: (item: FeedItem) => void;
   /** Called after the signal is dismissed/snoozed/actioned (to remove/refresh it). */
   onCleared?: (item: FeedItem) => void;
@@ -52,13 +57,20 @@ export function SignalCard({
   const style = styleFor(item.type);
   const Icon = style.icon;
   const tone = strengthTone(item.strength);
-  const subject = item.companyName || item.personName || 'Unknown';
+  const subject = stripDashes(item.companyName || item.personName || 'Unknown');
   const when = item.publishedAt ?? item.ingestedAt;
   const typeLabel = item.type ? SIGNAL_TYPE_LABELS[item.type as SignalType] : 'Signal';
   const sourceLabel = SOURCE_LABELS[item.source as SourceName] ?? item.source;
   const pct = Math.round((item.strength ?? 0) * 100);
   const [pending, startTransition] = useTransition();
   const isCleared = item.status !== 'open';
+  // Names of the customer types (ICPs) this signal matched, for the strength explainer.
+  const matchedNames = icpNames
+    ? item.matchedIcpIds.map((id) => icpNames[id]).filter((n): n is string => Boolean(n))
+    : [];
+  // House style: strip em/en dashes from any external text we display.
+  const titleText = item.title ? stripDashes(item.title) : null;
+  const justification = item.justification ? stripDashes(item.justification) : null;
 
   function runStatus(
     fn: () => Promise<StatusActionResult>,
@@ -94,12 +106,15 @@ export function SignalCard({
               : ''}
           </Badge>
         )}
-        <div className="ml-auto flex items-center gap-2" title={`How strong a buying sign this is: ${pct}%`}>
-          <div className="hidden h-1.5 w-16 overflow-hidden rounded-full bg-muted sm:block">
-            <div className={cn('h-full rounded-full transition-[width] duration-500 ease-out', item.strength && item.strength >= 0.7 ? 'bg-beacon' : 'bg-primary')} style={{ width: `${pct}%` }} />
-          </div>
-          <span className={cn('font-mono text-xs font-medium', tone.cls)}>{pct}%</span>
-        </div>
+        <StrengthInfo
+          pct={pct}
+          strong={!!item.strength && item.strength >= 0.7}
+          toneCls={tone.cls}
+          typeLabel={typeLabel}
+          sourceLabel={sourceLabel}
+          justification={justification}
+          matchedNames={matchedNames}
+        />
       </div>
 
       <div className={cn(compact ? 'mt-2' : 'mt-3')}>
@@ -113,10 +128,10 @@ export function SignalCard({
           )}
           {item.companyDomain && <span className="text-xs text-muted-foreground">{item.companyDomain}</span>}
         </div>
-        {item.title && <p className="mt-0.5 text-sm font-medium">{item.title}</p>}
+        {titleText && <p className="mt-0.5 text-sm font-medium">{titleText}</p>}
         <p className={cn('mt-1 text-sm text-muted-foreground', compact && 'line-clamp-2')}>{cleanSummary(item)}</p>
-        {!compact && item.justification && (
-          <p className="mt-2 text-xs italic text-muted-foreground/80">{item.justification}</p>
+        {!compact && justification && (
+          <p className="mt-2 text-xs italic text-muted-foreground/80">{justification}</p>
         )}
       </div>
 

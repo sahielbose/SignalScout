@@ -1,6 +1,6 @@
-import { and, desc, asc, eq, gte, ilike, or, sql, arrayOverlaps, type SQL } from 'drizzle-orm';
+import { and, desc, asc, eq, exists, gte, ilike, or, sql, arrayOverlaps, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
-import { companies, signals, people } from '@/lib/db/schema';
+import { companies, signals, people, dossiers, lists, listMembers } from '@/lib/db/schema';
 import { getOrgIcpIds } from '@/lib/feed/queries';
 
 /** Ways to order the companies index. Kept as a closed set so the URL param is validated. */
@@ -182,7 +182,36 @@ export async function getCompanyProfile(
     db
       .select({ id: people.id, name: people.fullName, title: people.title })
       .from(people)
-      .where(eq(people.companyId, companyId))
+      // Tenancy: the people table has no org column, so only show people this org
+      // has an actual link to (an org-matched signal, an org dossier, or an org
+      // list membership). Otherwise one org would see everyone another org has
+      // researched at a company they happen to both watch.
+      .where(
+        and(
+          eq(people.companyId, companyId),
+          or(
+            exists(
+              db
+                .select({ x: sql`1` })
+                .from(signals)
+                .where(and(eq(signals.personId, people.id), arrayOverlaps(signals.matchedIcpIds, orgIcpIds))),
+            ),
+            exists(
+              db
+                .select({ x: sql`1` })
+                .from(dossiers)
+                .where(and(eq(dossiers.personId, people.id), eq(dossiers.orgId, orgId))),
+            ),
+            exists(
+              db
+                .select({ x: sql`1` })
+                .from(listMembers)
+                .innerJoin(lists, eq(listMembers.listId, lists.id))
+                .where(and(eq(listMembers.personId, people.id), eq(lists.orgId, orgId))),
+            ),
+          ),
+        ),
+      )
       .orderBy(desc(people.confidence)),
   ]);
   const byType = byTypeRows

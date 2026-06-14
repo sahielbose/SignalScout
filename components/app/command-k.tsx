@@ -3,10 +3,24 @@
 import * as React from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useRouter } from 'next/navigation';
-import { Building2, Radio, Search, User } from 'lucide-react';
+import {
+  BarChart3,
+  Building2,
+  Calendar,
+  Compass,
+  FileSearch,
+  Gauge,
+  ListChecks,
+  Plug,
+  Radio,
+  Search,
+  Settings as SettingsIcon,
+  Target,
+  User,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type SearchKind = 'person' | 'company' | 'signal';
+type SearchKind = 'person' | 'company' | 'signal' | 'page';
 
 interface SearchResult {
   kind: SearchKind;
@@ -14,6 +28,7 @@ interface SearchResult {
   label: string;
   sublabel: string | null;
   href: string;
+  icon?: typeof User;
 }
 
 interface GlobalSearchResults {
@@ -24,7 +39,49 @@ interface GlobalSearchResults {
 
 const EMPTY: GlobalSearchResults = { people: [], companies: [], signals: [] };
 
-const GROUPS: { key: keyof GlobalSearchResults; title: string; icon: typeof User }[] = [
+/**
+ * The static launcher index: every page and feature, with rich keywords so a
+ * search like "ai key", "slack", "webhook", "accuracy" or "cost" jumps straight
+ * to the right page. This is matched instantly client-side, so the palette is
+ * useful the moment it opens, with no waiting and no clicking through pages.
+ */
+interface NavItem {
+  label: string;
+  sublabel: string;
+  href: string;
+  icon: typeof User;
+  keywords: string[];
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Feed', sublabel: 'Your live list of public buying signals', href: '/feed', icon: Radio, keywords: ['feed', 'signals', 'home', 'inbox', 'worklist', 'buying'] },
+  { label: 'Customer types (ICPs)', sublabel: 'Define the kind of customer you sell to', href: '/icps', icon: Target, keywords: ['icp', 'icps', 'customer', 'audience', 'target', 'ideal customer', 'who you sell to', 'persona'] },
+  { label: 'Research', sublabel: 'Build a sourced research profile on a person or company', href: '/research', icon: FileSearch, keywords: ['research', 'dossier', 'profile', 'deep research', 'person', 'enrich'] },
+  { label: 'Companies', sublabel: 'Companies showing buying signals', href: '/companies', icon: Building2, keywords: ['companies', 'accounts', 'org', 'organizations'] },
+  { label: 'Lists', sublabel: 'Saved groups of people and companies', href: '/lists', icon: ListChecks, keywords: ['lists', 'saved', 'export', 'csv', 'crm', 'group'] },
+  { label: 'Events', sublabel: 'Public events your prospects attend', href: '/events', icon: Calendar, keywords: ['events', 'conferences', 'meetups', 'luma', 'summit'] },
+  { label: 'Integrations', sublabel: 'Connect webhooks, Slack, CRM, MCP, and API keys', href: '/integrations', icon: Plug, keywords: ['integrations', 'webhook', 'webhooks', 'slack', 'crm', 'mcp', 'api key', 'connect', 'hubspot', 'salesforce'] },
+  { label: 'Usage and your AI key', sublabel: 'Daily allowance, cost, and bring your own AI key', href: '/usage', icon: Gauge, keywords: ['usage', 'quota', 'limits', 'cost', 'billing', 'byo', 'ai key', 'anthropic key', 'allowance'] },
+  { label: 'Metrics', sublabel: 'AI accuracy and how much it has cost over time', href: '/evals', icon: BarChart3, keywords: ['metrics', 'cost', 'charts', 'analytics', 'spend', 'accuracy', 'evals', 'precision', 'recall', 'f1', 'quality'] },
+  { label: 'Profile', sublabel: 'You, your workspace, and your activity', href: '/profile', icon: User, keywords: ['profile', 'me', 'you', 'account', 'my'] },
+  { label: 'Settings', sublabel: 'Workspace, team, and view preferences', href: '/settings', icon: SettingsIcon, keywords: ['settings', 'workspace', 'team', 'preferences', 'rename', 'name', 'members', 'role'] },
+];
+
+function matchNav(term: string): SearchResult[] {
+  const t = term.trim().toLowerCase();
+  const items = !t
+    ? NAV_ITEMS
+    : NAV_ITEMS.filter(
+        (n) =>
+          n.label.toLowerCase().includes(t) ||
+          n.sublabel.toLowerCase().includes(t) ||
+          n.keywords.some((k) => k.includes(t)),
+      );
+  return items.map((n) => ({ kind: 'page' as const, id: n.href, label: n.label, sublabel: n.sublabel, href: n.href, icon: n.icon }));
+}
+
+const GROUPS: { key: 'pages' | keyof GlobalSearchResults; title: string; icon: typeof User }[] = [
+  { key: 'pages', title: 'Go to', icon: Compass },
   { key: 'people', title: 'People', icon: User },
   { key: 'companies', title: 'Companies', icon: Building2 },
   { key: 'signals', title: 'Signals', icon: Radio },
@@ -38,13 +95,18 @@ export function CommandK() {
   const [activeIndex, setActiveIndex] = React.useState(0);
   const [loading, setLoading] = React.useState(false);
 
-  // Flat, ordered list mirroring the rendered groups (drives keyboard nav).
-  const flat = React.useMemo<SearchResult[]>(
-    () => GROUPS.flatMap((g) => results[g.key]),
-    [results],
+  // Pages match instantly client-side; entity results stream in from the server.
+  const pages = React.useMemo(() => matchNav(query), [query]);
+  const grouped = React.useMemo(
+    () => ({ pages, people: results.people, companies: results.companies, signals: results.signals }),
+    [pages, results],
   );
 
-  // ── Cmd/Ctrl+K toggles the palette from anywhere ──────────────────────
+  // Flat, ordered list mirroring the rendered groups (drives keyboard nav).
+  const flat = React.useMemo<SearchResult[]>(() => GROUPS.flatMap((g) => grouped[g.key]), [grouped]);
+
+  // Cmd/Ctrl+K toggles the palette from anywhere. A custom event lets the
+  // sidebar/topbar Search buttons open it too.
   React.useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -52,8 +114,15 @@ export function CommandK() {
         setOpen((prev) => !prev);
       }
     }
+    function onOpen() {
+      setOpen(true);
+    }
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener('ss:open-search', onOpen);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('ss:open-search', onOpen);
+    };
   }, []);
 
   // Reset transient state whenever the dialog opens or closes.
@@ -66,7 +135,7 @@ export function CommandK() {
     }
   }, [open]);
 
-  // ── Debounced fetch against /api/search ───────────────────────────────
+  // Debounced fetch against /api/search for people/companies/signals.
   React.useEffect(() => {
     const term = query.trim();
     if (!term) {
@@ -141,7 +210,7 @@ export function CommandK() {
         >
           <Dialog.Title className="sr-only">Search Signal Scout</Dialog.Title>
           <Dialog.Description className="sr-only">
-            Search people, companies, and signals in your workspace.
+            Jump to any page, person, company, or signal in your workspace.
           </Dialog.Description>
 
           <div className="flex items-center gap-2 border-b border-border px-4">
@@ -151,7 +220,7 @@ export function CommandK() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onInputKeyDown}
-              placeholder="Search people, companies, signals..."
+              placeholder="Search pages, people, companies, signals..."
               className="h-12 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               aria-label="Search"
             />
@@ -162,8 +231,8 @@ export function CommandK() {
 
           <div className="scroll-thin max-h-[min(60vh,28rem)] overflow-y-auto p-2">
             {!term && (
-              <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                Start typing to jump to any person, company, or signal in your workspace.
+              <p className="px-3 pb-1 pt-2 text-[0.7rem] font-medium text-muted-foreground">
+                Jump to a page, or start typing to find a person, company, or signal.
               </p>
             )}
 
@@ -173,10 +242,9 @@ export function CommandK() {
               </p>
             )}
 
-            {term &&
-              hasResults &&
+            {hasResults &&
               GROUPS.map((group) => {
-                const items = results[group.key];
+                const items = grouped[group.key];
                 if (items.length === 0) return null;
                 const GroupIcon = group.icon;
                 return (
@@ -188,6 +256,7 @@ export function CommandK() {
                       {items.map((item) => {
                         const index = cursor++;
                         const active = index === activeIndex;
+                        const ItemIcon = item.icon ?? GroupIcon;
                         return (
                           <li key={`${item.kind}-${item.id}`} role="option" aria-selected={active}>
                             <button
@@ -196,18 +265,14 @@ export function CommandK() {
                               onMouseEnter={() => setActiveIndex(index)}
                               className={cn(
                                 'flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm transition-colors',
-                                active
-                                  ? 'bg-accent text-accent-foreground'
-                                  : 'text-foreground hover:bg-accent/60',
+                                active ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-accent/60',
                               )}
                             >
-                              <GroupIcon className="size-4 shrink-0 text-muted-foreground" />
+                              <ItemIcon className="size-4 shrink-0 text-muted-foreground" />
                               <span className="min-w-0 flex-1">
                                 <span className="block truncate">{item.label}</span>
                                 {item.sublabel && (
-                                  <span className="block truncate text-xs text-muted-foreground">
-                                    {item.sublabel}
-                                  </span>
+                                  <span className="block truncate text-xs text-muted-foreground">{item.sublabel}</span>
                                 )}
                               </span>
                             </button>
@@ -222,24 +287,16 @@ export function CommandK() {
 
           <div className="flex items-center gap-3 border-t border-border px-4 py-2 text-[0.7rem] text-muted-foreground">
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-medium">
-                &#8593;
-              </kbd>
-              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-medium">
-                &#8595;
-              </kbd>
+              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-medium">&#8593;</kbd>
+              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-medium">&#8595;</kbd>
               to move
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-medium">
-                &#8629;
-              </kbd>
+              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-medium">&#8629;</kbd>
               to open
             </span>
             <span className="ml-auto flex items-center gap-1">
-              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-medium">
-                Esc
-              </kbd>
+              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-medium">Esc</kbd>
               to close
             </span>
           </div>

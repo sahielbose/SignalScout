@@ -14,6 +14,7 @@ import {
   BarChart3,
   Settings,
   Search,
+  User,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -49,6 +50,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { href: '/integrations', label: 'Integrations', icon: Plug },
       { href: '/usage', label: 'Usage', icon: Gauge },
       { href: '/evals', label: 'Metrics', icon: BarChart3 },
+      { href: '/profile', label: 'Profile', icon: User },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
   },
@@ -104,11 +106,9 @@ export function NavLink({
   );
 }
 
-/** Fires a synthetic Cmd/Ctrl+K so the command palette opens from a click too. */
+/** Opens the command palette from a click (the same launcher as Cmd/Ctrl+K). */
 function openSearch() {
-  window.dispatchEvent(
-    new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true, bubbles: true }),
-  );
+  window.dispatchEvent(new CustomEvent('ss:open-search'));
 }
 
 export function Sidebar() {
@@ -169,8 +169,8 @@ export function Sidebar() {
         <button
           type="button"
           onClick={openSearch}
-          aria-label={collapsed ? 'Search people, companies, signals' : undefined}
-          title={collapsed ? 'Search people, companies, signals' : undefined}
+          aria-label={collapsed ? 'Search and jump to any page, person, company, or signal' : undefined}
+          title={collapsed ? 'Search and jump to any page, person, company, or signal' : undefined}
           className={cn(
             'group flex w-full items-center rounded-md text-sm font-medium text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground',
             collapsed ? 'justify-center px-0 py-2' : 'gap-2.5 px-3 py-2',

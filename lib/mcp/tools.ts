@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { desc, eq, or, sql } from 'drizzle-orm';
+import { and, arrayOverlaps, desc, eq, or, sql } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { signals, companies } from '@/lib/db/schema';
-import { getFeed } from '@/lib/feed/queries';
-import { getPersonWithDossier } from '@/lib/research/people-queries';
+import { getFeed, getOrgIcpIds } from '@/lib/feed/queries';
+import { getPersonWithDossier, personVisibleToOrg } from '@/lib/research/people-queries';
 import { generateDossier } from '@/lib/research/agent';
 import { getListMembers, listLists, createList, addPersonToList } from '@/lib/lists/service';
 import { listIcps } from '@/lib/icp/service';
@@ -145,16 +145,23 @@ export const MCP_TOOLS: McpTool[] = [
       name: z.string().optional(),
       limit: z.number().int().min(1).max(50).optional(),
     },
-    async handle(args, _orgId) {
+    async handle(args, orgId) {
+      // Tenancy: signals are a shared pool matched per org. Only return signals
+      // matched to THIS org's ICPs, mirroring the dashboard company queries.
+      const orgIcpIds = await getOrgIcpIds(orgId);
+      if (orgIcpIds.length === 0) return { error: 'no_icps' };
       const company = await resolveCompany({ companyId: args.companyId as string, domain: args.domain as string, name: args.name as string });
       if (!company) return { error: 'company_not_found' };
       const limit = typeof args.limit === 'number' ? args.limit : 20;
       const rows = await db
         .select({ id: signals.id, type: signals.type, strength: signals.strength, source: signals.source, title: signals.title, url: signals.sourceUrl, publishedAt: signals.publishedAt, ingestedAt: signals.ingestedAt })
         .from(signals)
-        .where(eq(signals.companyId, company.id))
+        .where(and(eq(signals.companyId, company.id), arrayOverlaps(signals.matchedIcpIds, orgIcpIds)))
         .orderBy(desc(sql`coalesce(${signals.publishedAt}, ${signals.ingestedAt})`))
         .limit(limit);
+      // Fail closed: if the company has no signals matched to this org, do not
+      // confirm the company even exists.
+      if (rows.length === 0) return { error: 'company_not_found' };
       return { company: { id: company.id, name: company.name, domain: company.domain }, signals: rows };
     },
   },
@@ -238,6 +245,10 @@ export const MCP_TOOLS: McpTool[] = [
     schema: { personId: z.string(), listName: z.string() },
     async handle(args, orgId) {
       const personId = String(args.personId);
+      // Tenancy: only attach a person this org can already see (a dossier, list
+      // membership, or org-matched signal). Otherwise an arbitrary id could pull
+      // a cross-tenant person into this org's visibility.
+      if (!(await personVisibleToOrg(orgId, personId))) return { error: 'person_not_found' };
       const listName = String(args.listName).trim();
       const wanted = listName.toLowerCase();
       const existing = await listLists(orgId);

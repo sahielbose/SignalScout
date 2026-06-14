@@ -4,6 +4,7 @@ import { authenticateRequest, unauthorized } from '@/lib/api/auth';
 import { db } from '@/lib/db/client';
 import { people, companies } from '@/lib/db/schema';
 import { generateDossier } from '@/lib/research/agent';
+import { personVisibleToOrg } from '@/lib/research/people-queries';
 import { rateLimit, clientIp } from '@/lib/quota/ratelimit';
 import { enforceQuota, QuotaError } from '@/lib/quota/service';
 
@@ -19,6 +20,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const rl = await rateLimit(`research:ip:${clientIp(req)}`, { capacity: 10, refillPerSec: 0.2 });
   if (!rl.allowed) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
 
+  // Tenancy + abuse: only research a person this org can already see, and check
+  // it BEFORE spending quota so a forbidden id never costs the org a credit.
+  const [p] = await db.select().from(people).where(eq(people.id, id)).limit(1);
+  if (!p || !(await personVisibleToOrg(actor.orgId, id))) {
+    return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  }
+
   const byoKey = req.headers.get('x-llm-key');
   try {
     await enforceQuota(actor.orgId, 'research', { byoKey: !!byoKey });
@@ -28,9 +36,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
     throw err;
   }
-
-  const [p] = await db.select().from(people).where(eq(people.id, id)).limit(1);
-  if (!p) return NextResponse.json({ error: 'not_found' }, { status: 404 });
 
   let companyName: string | null = null;
   let domain: string | null = null;

@@ -9,7 +9,7 @@ import type { GuardedDossier } from './dossier';
  * an org it has an actual link to (a dossier, a list membership, or an
  * org-matched signal). Returns false so callers can fail closed.
  */
-async function personVisibleToOrg(orgId: string, personId: string): Promise<boolean> {
+export async function personVisibleToOrg(orgId: string, personId: string): Promise<boolean> {
   const [d] = await db
     .select({ ok: sql<number>`1` })
     .from(dossiers)

@@ -48,11 +48,14 @@ function host(u: string): string {
   }
 }
 
-async function getCachedDossier(personId: string): Promise<GuardedDossier | null> {
+async function getCachedDossier(personId: string, orgId: string | null | undefined): Promise<GuardedDossier | null> {
+  // Tenancy: a cached dossier is private to the org that built it. With no org we
+  // fail closed (never serve another org's cached research from the shared person).
+  if (!orgId) return null;
   const [row] = await db
     .select()
     .from(dossiers)
-    .where(and(eq(dossiers.personId, personId), gt(dossiers.expiresAt, new Date())))
+    .where(and(eq(dossiers.personId, personId), eq(dossiers.orgId, orgId), gt(dossiers.expiresAt, new Date())))
     .orderBy(desc(dossiers.createdAt))
     .limit(1);
   if (!row || !row.structured) return null;
@@ -257,7 +260,7 @@ export async function generateDossier(input: DossierInput): Promise<DossierResul
   }
 
   if (personId && !input.force) {
-    const cached = await getCachedDossier(personId);
+    const cached = await getCachedDossier(personId, input.orgId);
     if (cached) {
       cached.identity = {
         full_name: input.name,

@@ -18,6 +18,7 @@ export function FeedList({
   query,
   total,
   showCleared = false,
+  icpNames,
   loadMore: loadMoreAction,
 }: {
   initialItems: FeedItem[];
@@ -25,6 +26,8 @@ export function FeedList({
   query: string; // serialized filters (without page)
   total: number;
   showCleared?: boolean;
+  /** Map of the org's ICP id to name, for the per-card strength explainer. */
+  icpNames?: Record<string, string>;
   /** Server action that runs the same org-scoped query for the next page. */
   loadMore: (query: string, page: number) => Promise<{ items: FeedItem[]; hasMore: boolean }>;
 }) {
@@ -150,6 +153,7 @@ export function FeedList({
           <SignalCard
             item={item}
             density={density}
+            icpNames={icpNames}
             onAddToList={onAddToList}
             onCleared={onCleared}
             onReopened={onReopened}
