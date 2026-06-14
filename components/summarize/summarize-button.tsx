@@ -51,13 +51,13 @@ export function SummarizeButton(props: Surface = { surface: 'feed' }) {
     setRes(null);
     setOpen(true);
     start(async () => {
+      const search = typeof window !== 'undefined' ? window.location.search.replace(/^\?/, '') : '';
       let r: SummaryResult;
       if (surface === 'companies') {
-        r = await summarizeCompaniesAction();
+        r = await summarizeCompaniesAction(search);
       } else if (surface === 'list') {
         r = await summarizeListAction((props as { listId: string }).listId);
       } else {
-        const search = typeof window !== 'undefined' ? window.location.search.replace(/^\?/, '') : '';
         r = await summarizeFeedAction(search);
       }
       setRes(r);

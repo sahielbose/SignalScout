@@ -353,25 +353,6 @@ export function CostChart({
             </button>
           </div>
 
-          {/* Filter the accuracy table to one signal type (a public buying moment). */}
-          <label className="ml-auto inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-            Accuracy table
-          </label>
-          <select
-            aria-label="Filter the accuracy table by signal type"
-            title="A signal is a public buying moment. Show accuracy for just one type, or all of them."
-            className={selectCls}
-            value={sigType}
-            onChange={(e) => setParam('sigType', e.target.value)}
-          >
-            <option value="">All signal types</option>
-            {signalTypes.map((t) => (
-              <option key={t} value={t}>
-                {signalTypeLabels[t] ?? t}
-              </option>
-            ))}
-          </select>
-
           {hasActiveParams && (
             <button
               type="button"

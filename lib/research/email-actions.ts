@@ -17,7 +17,9 @@ export async function draftEmailAction(personId: string): Promise<EmailDraftResu
   let orgId: string;
   try {
     orgId = await requireOrgId();
-  } catch {
+  } catch (err) {
+    // Let the NEXT_REDIRECT from requireOrgId propagate so the redirect happens.
+    if ((err as { digest?: string })?.digest?.startsWith('NEXT_REDIRECT')) throw err;
     return { ok: false, error: 'Not signed in.' };
   }
 

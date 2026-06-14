@@ -9,8 +9,11 @@ import { runClassificationEval, type EvalReport } from '@/lib/evals/report';
  * it is never run on page load; the user triggers it from a button instead.
  */
 export async function runAccuracyCheckAction(): Promise<{ ok: boolean; report?: EvalReport; error?: string }> {
+  // Outside the try: requireOrgId() redirects an unauthenticated user by throwing
+  // a NEXT_REDIRECT control-flow error, which must propagate (not be caught and
+  // shown as a "NEXT_REDIRECT" toast).
+  await requireOrgId();
   try {
-    await requireOrgId();
     const report = await runClassificationEval();
     return { ok: true, report };
   } catch (err) {

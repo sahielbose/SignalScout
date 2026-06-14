@@ -158,12 +158,17 @@ export async function globalSearch(orgId: string, q: string): Promise<GlobalSear
       sublabel: r.domain ?? null,
       href: `/companies/${r.id}`,
     })),
-    signals: signalRows.map((r) => ({
-      kind: 'signal' as const,
-      id: r.id,
-      label: r.title?.trim() || 'Untitled signal',
-      sublabel: r.source,
-      href: '/feed',
-    })),
+    signals: signalRows.map((r) => {
+      const label = r.title?.trim() || 'Untitled signal';
+      return {
+        kind: 'signal' as const,
+        id: r.id,
+        label,
+        sublabel: r.source,
+        // Deep-link to the feed filtered to this signal's title, so the chosen
+        // result actually lands somewhere meaningful instead of the bare feed.
+        href: r.title?.trim() ? `/feed?q=${encodeURIComponent(label)}` : '/feed',
+      };
+    }),
   };
 }

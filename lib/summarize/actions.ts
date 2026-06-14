@@ -22,12 +22,22 @@ export async function summarizeFeedAction(search: string): Promise<SummaryResult
   return summarizeFeed(orgId, userId, filters);
 }
 
-/** Summarize the companies currently showing buying signals for this org. */
-export async function summarizeCompaniesAction(): Promise<SummaryResult> {
+/**
+ * Summarize the companies in the user's current view. `search` is the companies
+ * page query string, so the digest respects the active filters (search, type,
+ * minimum signals).
+ */
+export async function summarizeCompaniesAction(search = ''): Promise<SummaryResult> {
   const orgId = await requireOrgId();
   const userId = await currentUserId();
   if (!userId) return { ok: false, error: 'Not signed in.' };
-  return summarizeCompanies(orgId, userId);
+  const p = new URLSearchParams(search);
+  const min = Number(p.get('minSignals'));
+  return summarizeCompanies(orgId, userId, {
+    search: p.get('search') || undefined,
+    type: p.get('type') || undefined,
+    minSignals: Number.isFinite(min) && min > 1 ? Math.floor(min) : undefined,
+  });
 }
 
 /** Summarize the people and companies saved into one list. */

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { ArrowDownWideNarrow, Keyboard, LayoutList, Rows3, Search } from 'lucide-react';
+import { toast } from '@/lib/toast';
 import { PageHeader } from '@/components/app/page-header';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -56,6 +57,14 @@ export default function SettingsPage() {
     };
   }, []);
 
+  // Re-fetch after a save so the cards show the new value without a reload (this
+  // is a client component, so revalidatePath alone cannot re-run the effect above).
+  const reload = () => {
+    getSettingsData()
+      .then(setData)
+      .catch(() => {});
+  };
+
   return (
     <>
       <PageHeader
@@ -66,9 +75,9 @@ export default function SettingsPage() {
       <div className="mx-auto max-w-3xl space-y-5 p-6">
         {data ? (
           <>
-            <WorkspaceCard data={data} />
+            <WorkspaceCard data={data} onSaved={reload} />
             <MembersCard data={data} />
-            <ProfileCard data={data} />
+            <ProfileCard data={data} onSaved={reload} />
           </>
         ) : (
           <LoadingCards />
@@ -86,7 +95,17 @@ export default function SettingsPage() {
 // Workspace card: the shared account that owns your customer types, feed, and
 // research. Renaming is gated to owners and admins, matching actions.ts.
 // ─────────────────────────────────────────────────────────────────────────────
-function WorkspaceCard({ data }: { data: SettingsData }) {
+function WorkspaceCard({ data, onSaved }: { data: SettingsData; onSaved: () => void }) {
+  const [pending, start] = useTransition();
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    start(async () => {
+      await updateOrgName(fd);
+      toast('Workspace name saved', 'success');
+      onSaved();
+    });
+  }
   return (
     <Card className="animate-fade-up p-5 transition-shadow duration-200 hover:shadow-md">
       <h2 className="text-sm font-semibold">Workspace</h2>
@@ -94,7 +113,7 @@ function WorkspaceCard({ data }: { data: SettingsData }) {
         The shared account your whole team works in. Renaming it here changes the name everyone sees.
       </p>
       {data.canEditOrg ? (
-        <form action={updateOrgName} className="mt-3 space-y-1.5">
+        <form onSubmit={onSubmit} className="mt-3 space-y-1.5">
           <Label htmlFor="org-name">Workspace name</Label>
           <div className="flex gap-2">
             <Input
@@ -105,8 +124,8 @@ function WorkspaceCard({ data }: { data: SettingsData }) {
               required
               placeholder="e.g. Acme Sales"
             />
-            <Button type="submit" variant="secondary">
-              Save
+            <Button type="submit" variant="secondary" disabled={pending}>
+              {pending ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </form>
@@ -181,8 +200,18 @@ function MembersCard({ data }: { data: SettingsData }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Profile card: just this signed-in user's own details.
 // ─────────────────────────────────────────────────────────────────────────────
-function ProfileCard({ data }: { data: SettingsData }) {
+function ProfileCard({ data, onSaved }: { data: SettingsData; onSaved: () => void }) {
   const { user } = data;
+  const [pending, start] = useTransition();
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    start(async () => {
+      await updateProfileName(fd);
+      toast('Your name was saved', 'success');
+      onSaved();
+    });
+  }
   return (
     <Card
       className="animate-fade-up p-5 transition-shadow duration-200 hover:shadow-md"
@@ -192,7 +221,7 @@ function ProfileCard({ data }: { data: SettingsData }) {
       <p className="mt-1 text-xs text-muted-foreground">
         Just for you. This is the name your teammates see next to your activity.
       </p>
-      <form action={updateProfileName} className="mt-3 space-y-1.5">
+      <form onSubmit={onSubmit} className="mt-3 space-y-1.5">
         <Label htmlFor="profile-name">Your name</Label>
         <div className="flex gap-2">
           <Input
@@ -203,8 +232,8 @@ function ProfileCard({ data }: { data: SettingsData }) {
             required
             placeholder="e.g. Jordan Lee"
           />
-          <Button type="submit" variant="secondary">
-            Save
+          <Button type="submit" variant="secondary" disabled={pending}>
+            {pending ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </form>

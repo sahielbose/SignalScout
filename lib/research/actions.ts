@@ -182,7 +182,10 @@ export async function findSimilarAction(personId: string): Promise<SimilarAction
   let orgId: string;
   try {
     orgId = await requireOrgId();
-  } catch {
+  } catch (err) {
+    // requireOrgId redirects unauthenticated users by throwing NEXT_REDIRECT;
+    // that control-flow error must propagate so the redirect actually happens.
+    if ((err as { digest?: string })?.digest?.startsWith('NEXT_REDIRECT')) throw err;
     return { ok: false, error: 'Not signed in.' };
   }
 

@@ -1,9 +1,10 @@
 import Link from 'next/link';
-import { ListChecks, Plus, Trash2, ChevronRight, ArrowDownWideNarrow } from 'lucide-react';
+import { ListChecks, Plus, ChevronRight, ArrowDownWideNarrow } from 'lucide-react';
 import { requireOrgId } from '@/lib/auth/session';
 import { listLists, parseListSort, type ListSort } from '@/lib/lists/service';
-import { createListAction, deleteListAction } from '@/lib/lists/actions';
+import { createListAction } from '@/lib/lists/actions';
 import { PageHeader } from '@/components/app/page-header';
+import { DeleteListButton } from '@/components/lists/delete-list-button';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,12 +107,7 @@ export default async function ListsPage({ searchParams }: { searchParams: Promis
                     </div>
                   </div>
                 </Link>
-                <form action={deleteListAction}>
-                  <input type="hidden" name="id" value={l.id} />
-                  <Button variant="ghost" size="icon" type="submit" title="Delete list">
-                    <Trash2 className="size-4" />
-                  </Button>
-                </form>
+                <DeleteListButton id={l.id} name={l.name} members={l.members} />
               </Card>
             ))}
           </div>

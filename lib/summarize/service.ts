@@ -2,7 +2,7 @@ import { generateText } from 'ai';
 import { getModel, modelId, logLlmRun, type LlmRunRecord } from '@/lib/providers/llm';
 import { hasLLM } from '@/lib/env';
 import { getByoKey } from '@/lib/users/service';
-import { enforceQuota } from '@/lib/quota/service';
+import { enforceQuota, QuotaError } from '@/lib/quota/service';
 import { getFeed, type FeedFilters, type FeedItem } from '@/lib/feed/queries';
 import { listCompaniesWithCounts } from '@/lib/companies/queries';
 import { getListMembers, getList } from '@/lib/lists/service';
@@ -36,14 +36,23 @@ async function runSummary(
   }
 
   const byoKey = await getByoKey(userId);
+  const model = hasLLM() || byoKey ? getModel('research', byoKey) : null;
+
+  // No model available: return the deterministic fallback and DO NOT spend a
+  // quota credit (it makes no model call and costs nothing).
+  if (!model) return { ok: true, summary: fallback, count, usingOwnKey: !!byoKey };
+
+  // Only a real model call counts against quota.
   try {
     await enforceQuota(orgId, 'research', { byoKey: !!byoKey });
   } catch (err) {
-    return { ok: false, error: (err as Error).message };
+    // Speak in the user's terms ("Summarize"), not the internal quota kind.
+    const friendly =
+      err instanceof QuotaError
+        ? "You have reached today's AI limit. Add your own AI key on the Usage page to keep going, or try again tomorrow."
+        : (err as Error).message;
+    return { ok: false, error: friendly };
   }
-
-  const model = hasLLM() || byoKey ? getModel('research', byoKey) : null;
-  if (!model) return { ok: true, summary: fallback, count, usingOwnKey: !!byoKey };
 
   try {
     const t0 = Date.now();
@@ -122,9 +131,23 @@ export async function summarizeFeed(orgId: string, userId: string, filters: Feed
   });
 }
 
-/** Summarize the companies currently showing buying signals for this org. */
-export async function summarizeCompanies(orgId: string, userId: string): Promise<SummaryResult> {
-  const rows = await listCompaniesWithCounts(orgId, { sort: 'signals', limit: MAX_CARDS });
+/**
+ * Summarize the companies in the user's current companies view. The optional
+ * filters (search, type, minSignals) mirror the companies page so the digest
+ * matches the rows actually on screen, not the whole org.
+ */
+export async function summarizeCompanies(
+  orgId: string,
+  userId: string,
+  filters: { search?: string; type?: string; minSignals?: number } = {},
+): Promise<SummaryResult> {
+  const rows = await listCompaniesWithCounts(orgId, {
+    sort: 'signals',
+    limit: MAX_CARDS,
+    search: filters.search,
+    type: filters.type,
+    minSignals: filters.minSignals,
+  });
   const lines = rows.map((c, i) => {
     const name = c.name ?? c.domain ?? 'Unknown';
     const last = c.lastAt ? relativeTime(c.lastAt) : 'unknown';

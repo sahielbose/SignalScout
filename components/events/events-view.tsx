@@ -240,17 +240,24 @@ export function EventsView({
       if (res.ok) {
         setViewName('');
         setSaving(false);
+        // The saved-views chips are a server prop; refresh so the new view shows
+        // without a manual reload (mirrors the feed saved-views behavior).
+        router.refresh();
       } else {
         setSaveErr(res.error ?? 'Could not save the view');
       }
     });
-  }, [viewName, currentParams]);
+  }, [viewName, currentParams, router]);
 
-  const onDelete = useCallback((id: string) => {
-    startTransition(async () => {
-      await deleteViewAction('events', id);
-    });
-  }, []);
+  const onDelete = useCallback(
+    (id: string) => {
+      startTransition(async () => {
+        await deleteViewAction('events', id);
+        router.refresh();
+      });
+    },
+    [router],
+  );
 
   const withAttendees = events.filter((e) => e.personId && e.personName);
   const sort = params.get('sort') ?? 'soonest';
