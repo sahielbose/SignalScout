@@ -16,9 +16,14 @@ export async function saveByoKeyAction(key: string): Promise<{ ok: boolean; erro
   return { ok: true };
 }
 
-export async function clearByoKeyAction() {
+export async function clearByoKeyAction(): Promise<{ ok: boolean; error?: string }> {
   const s = await auth();
-  if (!s?.user?.id) return;
-  await setByoKey(s.user.id, null);
+  if (!s?.user?.id) return { ok: false, error: 'Not signed in.' };
+  try {
+    await setByoKey(s.user.id, null);
+  } catch {
+    return { ok: false, error: 'Could not remove the key. Please try again.' };
+  }
   revalidatePath('/usage');
+  return { ok: true };
 }

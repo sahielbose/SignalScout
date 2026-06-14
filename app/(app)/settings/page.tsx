@@ -355,20 +355,21 @@ function PreferencesCard() {
           </div>
         </div>
 
-        {/* Default feed order: which buying signals show first. */}
+        {/* Open the feed in a chosen order. This builds a link; the feed reads its
+            order from the URL, so the button below applies the choice. */}
         <div className="space-y-1.5">
           <Label htmlFor="default-feed-sort" className="flex items-center gap-1.5">
             <ArrowDownWideNarrow className="size-4 text-muted-foreground" />
-            Default feed order
+            Open the feed in this order
           </Label>
           <p className="text-xs text-muted-foreground">
-            Which buying signals (public buying moments) show first when you open the feed. Strength means how
-            strong a buying sign it is.
+            Pick an order, then use the button to open the feed sorted that way. Strength means how strong a buying
+            sign it is. While you browse, the feed keeps its order in the page URL.
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <select
               id="default-feed-sort"
-              aria-label="Default feed order"
+              aria-label="Order to open the feed in"
               className={selectCls}
               value={mounted ? feedSort : 'newest'}
               onChange={(e) => setFeedSort(e.target.value as FeedSort)}

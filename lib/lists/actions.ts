@@ -42,6 +42,8 @@ export async function removeMemberAction(form: FormData) {
   const memberId = String(form.get('memberId') ?? '');
   if (listId && memberId) await removeMember(orgId, listId, memberId);
   revalidatePath(`/lists/${listId}`);
+  // The index shows a per-list member count, so refresh it too.
+  revalidatePath('/lists');
 }
 
 export interface AddResult {

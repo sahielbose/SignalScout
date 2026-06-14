@@ -148,9 +148,13 @@ export function ByoKey({ masked }: { masked: string | null }) {
 
   const clear = () =>
     start(async () => {
-      await clearByoKeyAction();
-      setSaved(false);
-      toast('Key removed. You are back on the shared free tier.', 'default');
+      const r = await clearByoKeyAction();
+      if (r.ok) {
+        setSaved(false);
+        toast('Key removed. You are back on the shared free tier.', 'default');
+      } else {
+        toast(r.error ?? 'Could not remove key', 'error');
+      }
     });
 
   return (

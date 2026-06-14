@@ -102,6 +102,7 @@ function ActiveSwitch({ id, active }: { id: string; active: boolean }) {
     <Switch
       checked={active}
       disabled={pending}
+      aria-label={active ? 'Pause webhook' : 'Activate webhook'}
       title={active ? 'Active - delivering events' : 'Paused'}
       onCheckedChange={(next) =>
         start(async () => {

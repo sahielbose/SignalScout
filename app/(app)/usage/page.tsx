@@ -1,5 +1,5 @@
 import { and, eq, gte, sql } from 'drizzle-orm';
-import { requireUser } from '@/lib/auth/session';
+import { requireUser, requireOrgId } from '@/lib/auth/session';
 import { db } from '@/lib/db/client';
 import { llmRuns } from '@/lib/db/schema';
 import { getQuotaUsage } from '@/lib/quota/service';
@@ -15,7 +15,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function UsagePage() {
   const user = await requireUser();
-  const orgId = user.orgId!;
+  // requireOrgId fails closed (redirects) when the user has no org, instead of
+  // the old non-null assertion that would have queried with a null org.
+  const orgId = await requireOrgId();
   const [quota, byoKey] = await Promise.all([getQuotaUsage(orgId), getByoKey(user.id)]);
 
   // Use UTC midnight so "today" here matches the UTC day the quota meters reset on.
