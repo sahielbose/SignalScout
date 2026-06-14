@@ -30,7 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
           <UserMenu email={user.email ?? 'you'} orgName={orgName} />
         </header>
-        <main className="scroll-thin flex-1 overflow-y-auto">{children}</main>
+        <main className="scroll-thin min-w-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
       </div>
       <CommandK />
       <Toaster />
